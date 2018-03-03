@@ -1,5 +1,6 @@
 import re
 
+
 class ContainerMeta(type):
 
     patterns = {}
@@ -19,6 +20,7 @@ class LogContainer(object):
 
     __metaclass__ = ContainerMeta
 
+    group_prefixes = []
     sub_containers = []
     representative = ""
     pattern = None
@@ -27,8 +29,6 @@ class LogContainer(object):
     def __init__(self):
         self._named_group_filter = re.compile("\?P<(\w*)>")
         self._generate_chain(self.sub_containers, self)
-        #self._add_representative(self.sub_containers, self)
-
 
     @staticmethod
     def _group_prefix(container):
@@ -57,8 +57,12 @@ class LogContainer(object):
                 setattr(parent, container.representative, type("Content",
                                                                (Content, ),
                                                                {"representative": container.representative,
-                                                                "group_prefix": self._group_prefix(container)}
+                                                                "group_prefixes": [self._group_prefix(container)]}
                                                                )
                         )
+                representative = getattr(parent, container.representative)
+            else:
+                representative = parent
+                parent.group_prefixes.append(self._group_prefix(container))
 
-            self._generate_chain(container.sub_containers, getattr(parent, container.representative))
+            self._generate_chain(container.sub_containers, representative)
