@@ -24,7 +24,7 @@ class LogContainer(object):
     sub_containers = []
     representative = ""
     pattern = None
-    regex = ""
+    _regex = ""
 
     def __init__(self):
         self._named_group_filter = re.compile("\?P<(\w*)>")
@@ -37,6 +37,15 @@ class LogContainer(object):
     def _group_name(self, container, named_group):
         return self._group_prefix(container) + named_group
 
+    def _add_pattern(self, container):
+        container_pattern = self.patterns[container.__name__]
+        named_groups = []
+        for named_group in self._named_group_filter.findall(container_pattern):
+            container_pattern = container_pattern.replace(named_group, self._group_name(container, named_group))
+            named_groups.append(named_group)
+        self._regex += container_pattern + "|"
+        return named_groups
+
     def _generate_chain(self, containers, parent):
         """ generates the regex pattern chain and container members
 
@@ -48,11 +57,7 @@ class LogContainer(object):
 
         """
         for container in containers:
-            container_pattern = self.patterns[container.__name__]
-            for named_group in self._named_group_filter.findall(container_pattern):
-                container_pattern = container_pattern.replace(named_group, self._group_name(container, named_group))
-            self.regex += container_pattern + "|"
-
+            # create members
             if container.representative:
                 setattr(parent, container.representative, type("Content",
                                                                (Content, ),
@@ -63,6 +68,13 @@ class LogContainer(object):
                 representative = getattr(parent, container.representative)
             else:
                 representative = parent
+                # store the named group prefixes we are using
                 parent.group_prefixes.append(self._group_prefix(container))
 
+            # adding additional members for all named groups we detect
+            container_named_groups = self._add_pattern(container)
+            for named_group in container_named_groups:
+                setattr(representative, named_group, "")
+
+            # continue generating chain
             self._generate_chain(container.sub_containers, representative)
