@@ -3,8 +3,8 @@ import re
 import sys
 
 
-LOG = logging.getLogger()
-LOG.basicConfig(stream=sys.__stdout__, level=logging.INFO)
+LOG = logging.getLogger("logmole.container")
+logging.basicConfig(stream=sys.__stdout__, level=logging.INFO)
 
 
 class LogContainer(object):
@@ -15,34 +15,80 @@ class LogContainer(object):
     _regex = ""
 
     def __init__(self, file):
-        self._file = file
         self._groups_map = {}
         self._named_group_filter = re.compile("\?P<(\w*)>")
         self._generate_chain(self.sub_containers, self)
-        self._add_group_content()
+        self._parse_file(file)
 
     @property
     def regex(self):
+        """ global regex pattern
+
+        Returns:
+            str: regex pattern
+
+        """
         return self._regex[:-1]
 
     @staticmethod
     def _group_prefix(cls):
+        """ intended named capturing group prefix
+
+        Args:
+            cls (LogContainer): container
+
+        Returns:
+            str: named capturing prefix
+
+        """
         return cls.__name__ + "_"
 
     def _group_name(self, cls, named_group):
+        """
+
+        Args:
+            cls (LogContainer): container
+            named_group (str): name of the capturing group
+
+        Returns:
+
+        """
         return self._group_prefix(cls) + named_group
 
-    def _add_pattern(self, cls):
+    def _append_pattern(self, cls):
+        """ appends the container pattern to the global regex using the "|" alternator
+
+        Args:
+            cls (LogContainer): container
+
+        Returns:
+            list: found named capturing groups
+
+        """
         container_pattern = cls.pattern
-        named_groups = []
-        for named_group in self._named_group_filter.findall(container_pattern):
+
+        named_groups = self._named_group_filter.findall(container_pattern)
+        if not named_groups:
+            LOG.warning("Container '{0}' pattern '{1}' ".format(cls.__name__, cls.pattern) + \
+                        "doesn't include a named capturing group. " + \
+                        "No matches will be added.")
+
+        for named_group in named_groups:
             container_pattern = container_pattern.replace(named_group, self._group_name(cls, named_group))
-            named_groups.append(named_group)
         self._regex += container_pattern + "|"
         return named_groups
 
     def _create_members(self, cls, representative):
-        container_named_groups = self._add_pattern(cls)
+        """ checks the container pattern and adds found members to its representative
+
+        Args:
+            cls (LogContainer): container
+            representative (cls): representative container
+
+        Returns:
+
+        """
+        container_named_groups = self._append_pattern(cls)
         for named_group in container_named_groups:
             setattr(representative, named_group, None)
             self._groups_map[self._group_name(cls, named_group)] = {"obj": representative,
@@ -50,8 +96,17 @@ class LogContainer(object):
                                                                     }
 
     def _generate_chain(self, containers, parent):
+        """ recursively chains container patterns and members
+
+        Args:
+            containers (list): container classes
+            parent (:obj:`LogContainer`): parent container, which can be a sub-container class or the main instance
+
+        Returns:
+
+        """
+        # our main container will be the instance itself
         if parent == self:
-            print "test"
             self._create_members(parent.__class__, self)
 
         for container in containers:
@@ -71,18 +126,36 @@ class LogContainer(object):
             # continue generating chain
             self._generate_chain(container.sub_containers, representative)
 
-    def _add_group_content(self):
-        with open(self._file) as f:
+    def _parse_file(self, filepath):
+        """ parses the file and add the results to their corresponding member
+
+        Args:
+            filepath (str): path to file
+
+        Returns:
+
+        """
+        with open(filepath) as f:
             for match in regex_finditer_filter(f, self.regex):
                 for _ in match:
                     for key, value in _.groupdict().iteritems():
                         if value:
-                            print "found value for ", key
                             # todo: check if the attribute we want to set exists
                             setattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"], value)
 
 
 def regex_finditer_filter(lines, pattern):
+    """ regex filter
+
+    Args:
+        lines (:obj:`list` of `str`):
+        pattern (str): regex pattern
+
+    Yields:
+        iterator: match groups
+
+
+    """
     _compiled = re.compile(pattern)
     for line in lines:
         yield _compiled.finditer(line)
