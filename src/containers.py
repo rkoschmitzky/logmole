@@ -78,7 +78,7 @@ class LogContainer(object):
             container_named_groups = self._add_pattern(container)
             for named_group in container_named_groups:
                 setattr(representative, named_group, None)
-                self._groups_map[self._group_name(container, named_group)] = {"obj": self,
+                self._groups_map[self._group_name(container, named_group)] = {"obj": representative,
                                                                               "attr": named_group
                                                                               }
 
@@ -89,8 +89,10 @@ class LogContainer(object):
         with open(self._file) as f:
             for match in regex_finditer_filter(f, self.regex):
                 for _ in match:
-                    if _.groupdict():
-                        print _.groupdict()
+                    for key, value in _.groupdict().iteritems():
+                        if value:
+                            # todo: check if the attribute we want to set exists
+                            setattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"], value)
 
 
 def regex_finditer_filter(lines, pattern):
