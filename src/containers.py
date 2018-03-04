@@ -2,13 +2,11 @@ import logging
 import re
 import sys
 
-
 LOG = logging.getLogger("logmole.container")
 logging.basicConfig(stream=sys.__stdout__, level=logging.INFO)
 
 
 class LogContainer(object):
-
     sub_containers = []
     representative = ""
     pattern = None
@@ -90,6 +88,9 @@ class LogContainer(object):
         """
         container_named_groups = self._append_pattern(cls)
         for named_group in container_named_groups:
+            assert not hasattr(representative, named_group), \
+            "Conflicting group name '{0}' on '{1}'.".format(named_group, representative.__class__.__name__)
+
             setattr(representative, named_group, None)
             self._groups_map[self._group_name(cls, named_group)] = {"obj": representative,
                                                                     "attr": named_group
