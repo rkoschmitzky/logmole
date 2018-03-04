@@ -1,20 +1,13 @@
+import logging
 import re
+import sys
 
 
-class ContainerMeta(type):
-
-    patterns = {}
-
-    def __new__(mcs, name, bases, attrs):
-        if attrs.get("pattern"):
-            mcs.patterns[name] = attrs["pattern"]
-            bases[0].patterns = mcs.patterns
-        return super(ContainerMeta, mcs).__new__(mcs, name, bases, attrs)
+LOG = logging.getLogger()
+LOG.basicConfig(stream=sys.__stdout__, level=logging.INFO)
 
 
 class LogContainer(object):
-
-    __metaclass__ = ContainerMeta
 
     sub_containers = []
     representative = ""
@@ -40,7 +33,7 @@ class LogContainer(object):
         return self._group_prefix(cls) + named_group
 
     def _add_pattern(self, cls):
-        container_pattern = self.patterns[cls.__name__]
+        container_pattern = cls.pattern
         named_groups = []
         for named_group in self._named_group_filter.findall(container_pattern):
             container_pattern = container_pattern.replace(named_group, self._group_name(cls, named_group))
@@ -73,7 +66,6 @@ class LogContainer(object):
                 representative = getattr(parent, container.representative)
             else:
                 representative = parent
-
             self._create_members(container, representative)
 
             # continue generating chain
