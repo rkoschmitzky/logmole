@@ -20,15 +20,21 @@ class LogContainer(object):
 
     __metaclass__ = ContainerMeta
 
-    group_prefixes = []
     sub_containers = []
     representative = ""
     pattern = None
     _regex = ""
 
-    def __init__(self):
+    def __init__(self, file):
+        self._file = file
+        self._groups_map = {}
         self._named_group_filter = re.compile("\?P<(\w*)>")
         self._generate_chain(self.sub_containers, self)
+        self._add_group_content()
+
+    @property
+    def regex(self):
+        return self._regex[:-1]
 
     @staticmethod
     def _group_prefix(container):
@@ -61,20 +67,33 @@ class LogContainer(object):
             if container.representative:
                 setattr(parent, container.representative, type("Content",
                                                                (Content, ),
-                                                               {"representative": container.representative,
-                                                                "group_prefixes": [self._group_prefix(container)]}
+                                                               {"representative": container.representative}
                                                                )
                         )
                 representative = getattr(parent, container.representative)
             else:
                 representative = parent
-                # store the named group prefixes we are using
-                parent.group_prefixes.append(self._group_prefix(container))
 
             # adding additional members for all named groups we detect
             container_named_groups = self._add_pattern(container)
             for named_group in container_named_groups:
-                setattr(representative, named_group, "")
+                setattr(representative, named_group, None)
+                self._groups_map[self._group_name(container, named_group)] = {"obj": self,
+                                                                              "attr": named_group
+                                                                              }
 
             # continue generating chain
             self._generate_chain(container.sub_containers, representative)
+
+    def _add_group_content(self):
+        with open(self._file) as f:
+            for match in regex_finditer_filter(f, self.regex):
+                for _ in match:
+                    if _.groupdict():
+                        print _.groupdict()
+
+
+def regex_finditer_filter(lines, pattern):
+    _compiled = re.compile(pattern)
+    for line in lines:
+        yield _compiled.finditer(line)
