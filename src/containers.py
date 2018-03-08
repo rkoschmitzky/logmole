@@ -114,7 +114,7 @@ class LogContainer(object):
             # create members
             if container.representative:
                 setattr(parent, container.representative, type("LogContainer",
-                                                               (LogContainer, ),
+                                                               (LogContainer,),
                                                                {"representative": container.representative,
                                                                 "pattern": container.pattern}
                                                                )
@@ -140,9 +140,22 @@ class LogContainer(object):
             for match in regex_finditer_filter(f, self.regex):
                 for _ in match:
                     for key, value in _.groupdict().iteritems():
+                        # check if the match group key has a real value
                         if value:
-                            # todo: check if the attribute we want to set exists
-                            setattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"], value)
+                            # check if we added a value before
+                            existing_match = getattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"])
+                            # in case there is something convert it and add the new match to it
+                            if existing_match and self._groups_map[key]["obj"]:
+                                if isinstance(existing_match, list):
+                                    existing_match.append(value)
+                                    existing_match = sorted(set(existing_match))
+                                else:
+                                    existing_match = [existing_match]
+                            else:
+                                # otherwise simple add the string value
+                                existing_match = value
+
+                            setattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"], existing_match)
 
 
 def regex_finditer_filter(lines, pattern):
