@@ -6,10 +6,26 @@ LOG = logging.getLogger("logmole.container")
 logging.basicConfig(stream=sys.__stdout__, level=logging.INFO)
 
 
+class TypeAssumption(dict):
+
+    def __init__(self):
+        self["^\d+$"] = int
+        self["^\d+\.\d+$"] = float
+
+    def __call__(self, value):
+        # todo catch case when we would have multiple assumptions matching
+        for pattern, _type in self.iteritems():
+            if re.match(pattern, value):
+                return _type(value)
+        return value
+
+
 class LogContainer(object):
     sub_containers = []
     representative = ""
     pattern = None
+    infer_type = True
+    assumptions = TypeAssumption()
     _regex = ""
 
     def __init__(self, file):
@@ -118,7 +134,8 @@ class LogContainer(object):
                 setattr(parent, container.representative, type("LogContainer",
                                                                (LogContainer,),
                                                                {"representative": container.representative,
-                                                                "pattern": container.pattern}
+                                                                "pattern": container.pattern,
+                                                                "infer_type": container.infer_type}
                                                                )
                         )
                 representative = getattr(parent, container.representative)
@@ -145,19 +162,30 @@ class LogContainer(object):
                         # check if the match group key has a real value
                         if value:
                             # check if we added a value before
-                            existing_match = getattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"])
+                            container = self._groups_map[key]["obj"]
+                            attr_name = self._groups_map[key]["attr"]
+                            existing_match = getattr(container, attr_name)
                             # in case there is something convert it and add the new match to it
-                            if existing_match and self._groups_map[key]["obj"]:
+                            if existing_match and container:
                                 if isinstance(existing_match, list):
-                                    existing_match.append(value)
+                                    existing_match.append(self._infer_type(container, attr_name, value))
                                     existing_match = sorted(set(existing_match))
                                 else:
                                     existing_match = [existing_match]
                             else:
                                 # otherwise simple add the string value
-                                existing_match = value
+                                existing_match = self._infer_type(container, attr_name, value)
 
                             setattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"], existing_match)
+
+    @staticmethod
+    def _infer_type(cls, attr_name, value):
+        inferred = cls.assumptions(value)
+        if not cls.infer_type and inferred != value:
+            LOG.info("Match '{0}' for attribute {1} of container {2} ".format(value, attr_name, cls) +
+                     "could be automatically converted to {} if you set infer_type to True".format(type(inferred)))
+        else:
+            return inferred
 
 
 def regex_finditer_filter(lines, pattern):
