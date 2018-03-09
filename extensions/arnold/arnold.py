@@ -2,8 +2,9 @@ from src.containers import LogContainer
 
 
 class ArnoldPluginsContainer(LogContainer):
-    pattern = ".*\|\s*\w*?\s(?P<libraries>.*)\.dll"
-    representative = "plugins"
+    pattern = "\|\s*\w*?\s(?P<names>.*)\.(dll|so|dylib):\s(?P<plugins>\w+).*Arnold\s(?P<plugin_versions>(\d\.?){4})|"
+    pattern += "\|[^\d]*(?P<plugins_number>\d+)\splugin[^\d]*(?P<number>\d+)\slib"
+    representative = "libraries"
 
 
 class ArnoldTimeContainer(LogContainer):
