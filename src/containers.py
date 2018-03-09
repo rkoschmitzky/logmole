@@ -72,7 +72,9 @@ class LogContainer(object):
                         "No matches will be added.")
 
         for named_group in named_groups:
-            container_pattern = container_pattern.replace(named_group, self._group_name(cls, named_group))
+            # namespace the group name
+            container_pattern = container_pattern.replace("<{}>".format(named_group),
+                                                          "<{}>".format(self._group_name(cls, named_group)))
         self._regex += container_pattern + "|"
         return named_groups
 
