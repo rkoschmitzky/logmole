@@ -2,22 +2,10 @@ import logging
 import re
 import sys
 
+from src.types import TypeAssumptions
+
 LOG = logging.getLogger("logmole.container")
 logging.basicConfig(stream=sys.__stdout__, level=logging.INFO)
-
-
-class TypeAssumption(dict):
-
-    def __init__(self):
-        self["^\d+$"] = int
-        self["^\d+\.\d+$"] = float
-
-    def __call__(self, value):
-        # todo catch case when we would have multiple assumptions matching
-        for pattern, _type in self.iteritems():
-            if re.match(pattern, value):
-                return _type(value)
-        return value
 
 
 class LogContainer(object):
@@ -25,7 +13,7 @@ class LogContainer(object):
     representative = ""
     pattern = None
     infer_type = True
-    assumptions = TypeAssumption()
+    assumptions = TypeAssumptions()
     _regex = ""
 
     def __init__(self, file):
@@ -171,7 +159,7 @@ class LogContainer(object):
                             if existing_match and container:
                                 if isinstance(existing_match, list):
                                     existing_match.append(self._infer_type(container, attr_name, value))
-                                    existing_match = sorted(set(existing_match))
+                                    existing_match.sort()
                                 else:
                                     existing_match = [existing_match]
                             else:
