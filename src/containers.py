@@ -31,7 +31,7 @@ class LogContainer(object):
     def __init__(self, file):
         self._groups_map = {}
         self._named_group_filter = re.compile("\?P<(\w*)>")
-        self._generate_chain(self.sub_containers, self)
+        self._generate_chain(self.sub_containers, self, init=True)
         self._parse_file(file)
 
     @property
@@ -104,7 +104,9 @@ class LogContainer(object):
         Returns:
 
         """
+
         container_named_groups = self._append_pattern(cls)
+
         for named_group in container_named_groups:
             assert not hasattr(representative, named_group), \
             "Conflicting group name '{0}' on '{1}'.".format(named_group, representative.__class__.__name__)
@@ -114,7 +116,7 @@ class LogContainer(object):
                                                                     "attr": named_group
                                                                     }
 
-    def _generate_chain(self, containers, parent):
+    def _generate_chain(self, containers, parent, init=False):
         """ recursively chains container patterns and members
 
         Args:
@@ -125,7 +127,7 @@ class LogContainer(object):
 
         """
         # our main container will be the instance itself
-        if parent == self:
+        if parent == self and init:
             self._create_members(parent.__class__, self)
 
         for container in containers:
