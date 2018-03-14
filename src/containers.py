@@ -155,16 +155,26 @@ class LogContainer(object):
                             container = self._groups_map[key]["obj"]
                             attr_name = self._groups_map[key]["attr"]
                             existing_match = getattr(container, attr_name)
-                            # in case there is something convert it and add the new match to it
+                            converted_match = self._infer_type(container, attr_name, value)
+                            # handle multimatches by appending them or add them into the dict
                             if existing_match and container:
                                 if isinstance(existing_match, list):
-                                    existing_match.append(self._infer_type(container, attr_name, value))
+                                    existing_match.append(converted_match)
+                                    existing_match = list(set(existing_match))
                                     existing_match.sort()
+                                # todo: support other key value storages
+                                elif isinstance(existing_match, dict):
+                                    assert isinstance(converted_match, dict),\
+                                        "Can only add value to existing if it is of same type. " + \
+                                        "Got {0} for value '{1}, expected dict'".format(type(converted_match),
+                                                                                        value)
+                                    for _key, _value in converted_match.iteritems():
+                                        existing_match[_key] = _value
                                 else:
                                     existing_match = [existing_match]
                             else:
                                 # otherwise simple add the string value
-                                existing_match = self._infer_type(container, attr_name, value)
+                                existing_match = converted_match
 
                             setattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"], existing_match)
 
