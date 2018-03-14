@@ -26,8 +26,17 @@ class TypeAssumptions(dict):
         self["^(\d+\.\d+)$"] = float
 
     def __call__(self, value):
-        # todo catch case when we would have multiple assumptions matching
+        results = []
         for pattern, _type in self.iteritems():
             if re.match(pattern, value):
-                return _type(value)
-        return value
+                if results:
+                    raise TypeAssumptionError("Multiple assumptions matching on value {}".format(value))
+                results.append(_type(value))
+        if results:
+            return results[0]
+        else:
+            return value
+
+
+class TypeAssumptionError(ValueError):
+    pass
