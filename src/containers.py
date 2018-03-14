@@ -84,7 +84,7 @@ class LogContainer(object):
         self._regex += container_pattern + "|"
         return named_groups
 
-    def _create_members(self, cls, representative):
+    def _create_members(self, cls, representative, parent):
         """ checks the container pattern and adds found members to its representative
 
         Args:
@@ -102,9 +102,13 @@ class LogContainer(object):
             "Conflicting group name '{0}' on '{1}'.".format(named_group, representative.__class__.__name__)
 
             setattr(representative, named_group, None)
+            _member_draft_name = parent.representative + "." + cls.representative + "." + named_group
+            member_name = ".".join([_ for _ in _member_draft_name.split(".") if _])
             self._groups_map[self._group_name(cls, named_group)] = {"obj": representative,
-                                                                    "attr": named_group
+                                                                    "attr": named_group,
+                                                                    "member_name": member_name
                                                                     }
+        return container_named_groups
 
     def _generate_chain(self, containers, parent, init=False):
         """ recursively chains container patterns and members
@@ -118,7 +122,7 @@ class LogContainer(object):
         """
         # our main container will be the instance itself
         if parent == self and init:
-            self._create_members(parent.__class__, self)
+            self._create_members(parent.__class__, self, self)
 
         for container in containers:
             # create members
@@ -127,13 +131,14 @@ class LogContainer(object):
                                                                (LogContainer,),
                                                                {"representative": container.representative,
                                                                 "pattern": container.pattern,
-                                                                "infer_type": container.infer_type}
+                                                                "infer_type": container.infer_type
+                                                                }
                                                                )
                         )
                 representative = getattr(parent, container.representative)
             else:
                 representative = parent
-            self._create_members(container, representative)
+            self._create_members(container, representative, parent)
 
             # continue generating chain
             self._generate_chain(container.sub_containers, representative)
