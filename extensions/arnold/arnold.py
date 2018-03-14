@@ -2,15 +2,6 @@ from src.containers import LogContainer
 from src.types import TypeAssumptions, KeyValueType
 
 
-class ArnoldTypeAssumption(TypeAssumptions):
-    def __init__(self):
-        super(ArnoldTypeAssumption, self).__init__()
-        self[".*\s+\d+\.\d+"] = KeyValueType(r"(?P<key>\b(\.?\s?\w+){1,}\b)\s+(?P<value>\d+\.\d+)",
-                                             key_type=str,
-                                             value_type=float
-                                             )
-
-
 class ArnoldMemoryContainer(LogContainer):
     pattern = "\|\s+(?P<memory>.*\s+(\d+\.\d{2})$)"
 
@@ -33,7 +24,12 @@ class ArnoldHostContainer(LogContainer):
 
 class ArnoldLogContainer(LogContainer):
     pattern = ".*\|\sArnold\s(?P<version>(\d\.?){4})"
-    assumptions = ArnoldTypeAssumption()
+    assumptions = TypeAssumptions({".*\s+\d+\.\d+": KeyValueType(r"(?P<key>\b(\.?\s?\w+){1,}\b)\s+(?P<value>\d+\.\d+)",
+                                                                 key_type=str,
+                                                                 value_type=float
+                                                                 )
+                                   }
+                                  )
     sub_containers = [ArnoldHostContainer,
                       ArnoldTimeContainer,
                       ArnoldPluginsContainer,
