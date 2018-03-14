@@ -17,8 +17,19 @@ class ArnoldTimeContainer(LogContainer):
     representative = "times"
 
 
-class ArnoldHostContainer(LogContainer):
+class ArnoldAppContainer(LogContainer):
     pattern = ".*host\s+application:.*(?P<name>(Maya|Katana|Houdini))\s+(?P<host_version>.*$)"
+    representative = "app"
+
+
+class ArnoldMachineContainer(LogContainer):
+    pattern = "running\son\s(?P<name>.*),\s*pid=(?P<pid>\d+)"
+    representative = "machine"
+
+
+class ArnoldHostContainer(LogContainer):
+    sub_containers = [ArnoldMachineContainer,
+                      ArnoldAppContainer]
     representative = "host"
 
 
