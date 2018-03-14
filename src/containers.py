@@ -68,6 +68,8 @@ class LogContainer(object):
 
         """
         container_pattern = cls.pattern
+        if not container_pattern:
+            return []
 
         named_groups = self._named_group_filter.findall(container_pattern)
         if not named_groups:
