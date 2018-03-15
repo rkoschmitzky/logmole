@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import logging
 import re
 import sys
@@ -21,6 +22,17 @@ class LogContainer(object):
         self._named_group_filter = re.compile("\?P<(\w*)>")
         self._generate_chain(self.sub_containers, self, init=True)
         self._parse_file(file)
+        self._tree = self._generate_member_tree()
+
+    def _generate_member_tree(self):
+        tree = OrderedDict()
+        x = [_["member_name"] for _ in self._groups_map.viewvalues()]
+        x.sort()
+        for item in x:
+            t = tree
+            for part in item.split("."):
+                t = t.setdefault(part, {})
+        return tree
 
     @property
     def regex(self):
