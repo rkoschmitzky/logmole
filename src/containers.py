@@ -52,19 +52,6 @@ class LogContainer(object):
                     t = t.setdefault(part, {})
         return tree
 
-    def get_value(self, member_name):
-        """ get the value of nested members using a dot separated strings
-
-        Args:
-            member_name:
-
-        Returns:
-
-        """
-        for key, value in self._groups_map.iteritems():
-            if value["member_name"] == member_name:
-                return getattr(value["obj"], value["attr"])
-
     @property
     def regex(self):
         """ global regex pattern
@@ -237,6 +224,38 @@ class LogContainer(object):
                      "could be automatically converted to {} if you set infer_type to True".format(type(inferred)))
         else:
             return inferred
+
+    def get_value(self, member_name):
+        """ get the value of nested members using a dot separated strings
+
+        Args:
+            member_name:
+
+        Returns:
+
+        """
+        for key, value in self._groups_map.iteritems():
+            if value["member_name"] == member_name:
+                return getattr(value["obj"], value["attr"])
+
+    def dump(self, filepath, **json_kwargs):
+        """ dumps the representation to a file using json
+
+        Args:
+            filepath (str): path to a file
+            **json_kwargs (undefined): all keyword arguments json.dump() supports
+
+        Returns:
+
+        """
+        json_kwargs.setdefault("indent", 4)
+        json_kwargs.setdefault("sort_keys", True)
+
+        with open(filepath, 'w') as f:
+            try:
+                json.dump(self._tree, f, **json_kwargs)
+            except (OSError, TypeError):
+                raise
 
 
 def regex_finditer_filter(lines, pattern):
