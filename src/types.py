@@ -34,8 +34,8 @@ class KeyValueType(object):
                 raise TypeAssumptionError("{} needs ".format(self.__class__.__name__) +
                                           "a 'key' and 'value' named capturing group."
                                           )
-            return {match.groupdict()["key"]:
-                    match.groupdict()["value"]
+            return {self._key_type(match.groupdict()["key"]):
+                        self._value_type(match.groupdict()["value"])
                     }
         return {string: ""}
 
