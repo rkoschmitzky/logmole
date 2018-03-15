@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import logging
+import json
 import re
 import sys
 
@@ -24,15 +25,45 @@ class LogContainer(object):
         self._parse_file(file)
         self._tree = self._generate_member_tree()
 
+    def __repr__(self):
+        return "{}".format(json.dumps(self._tree, indent=4))
+
     def _generate_member_tree(self):
+        """ recreate a sorted tree structure that represents all added members
+
+        Returns:
+            dict: members representation
+
+        """
         tree = OrderedDict()
+
+        # sort all added members
         x = [_["member_name"] for _ in self._groups_map.viewvalues()]
         x.sort()
+
+        # create a nested dictionary representing all added members
         for item in x:
             t = tree
-            for part in item.split("."):
-                t = t.setdefault(part, {})
+            parts = item.split(".")
+            for i, part in enumerate(parts):
+                if (i + 1) == len(parts):
+                    t = t.setdefault(part, self.get_value(item))
+                else:
+                    t = t.setdefault(part, {})
         return tree
+
+    def get_value(self, member_name):
+        """ get the value of nested members using a dot separated strings
+
+        Args:
+            member_name:
+
+        Returns:
+
+        """
+        for key, value in self._groups_map.iteritems():
+            if value["member_name"] == member_name:
+                return getattr(value["obj"], value["attr"])
 
     @property
     def regex(self):
@@ -111,14 +142,15 @@ class LogContainer(object):
 
         for named_group in container_named_groups:
             assert not hasattr(representative, named_group), \
-            "Conflicting group name '{0}' on '{1}'.".format(named_group, representative.__class__.__name__)
+                "Conflicting group name '{0}' on '{1}'.".format(named_group, representative.__class__.__name__)
 
             setattr(representative, named_group, None)
             _member_draft_name = parent.representative + "." + cls.representative + "." + named_group
             member_name = ".".join([_ for _ in _member_draft_name.split(".") if _])
             self._groups_map[self._group_name(cls, named_group)] = {"obj": representative,
                                                                     "attr": named_group,
-                                                                    "member_name": member_name
+                                                                    "member_name": member_name,
+                                                                    "value": None
                                                                     }
         return container_named_groups
 
