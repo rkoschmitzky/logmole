@@ -158,13 +158,15 @@ class LogContainer(object):
         for container in containers:
             # create members
             if container.representative:
-                setattr(parent, container.representative, type("LogContainer",
-                                                               (LogContainer,),
-                                                               {"representative": container.representative,
-                                                                "pattern": container.pattern,
-                                                                "infer_type": container.infer_type
-                                                                }
-                                                               )
+                setattr(parent,
+                        container.representative,
+                        type("LogContainer", (LogContainer,),
+                             {"representative": container.representative,
+                              "pattern": container.pattern,
+                              "infer_type": container.infer_type,
+                              "assumptions": parent.assumptions  # todo don't inherit if container has own assumptions
+                              }
+                             )
                         )
                 representative = getattr(parent, container.representative)
             else:
