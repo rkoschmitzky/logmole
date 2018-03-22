@@ -211,7 +211,12 @@ class LogContainer(object):
                                     for _key, _value in converted_match.iteritems():
                                         existing_match[_key] = _value
                                 else:
+                                    # although this is quite ugly we have to do this to ensure
+                                    # that the second match will end up as part of the list and
+                                    # not only creating
                                     existing_match = [existing_match]
+                                    existing_match.append(converted_match)
+                                    existing_match = list(set(existing_match))
                             else:
                                 # otherwise simple add the string value
                                 existing_match = converted_match
