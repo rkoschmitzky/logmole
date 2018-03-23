@@ -231,6 +231,7 @@ class LogContainer(object):
                      "could be automatically converted to {} if you set infer_type to True".format(type(inferred)))
         else:
             return inferred
+        return value
 
     def get_value(self, member_name):
         """ get the value of nested members using a dot separated strings
