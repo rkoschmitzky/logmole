@@ -1,3 +1,4 @@
+from copy import deepcopy
 import re
 
 
@@ -40,22 +41,21 @@ class KeyValueType(object):
         return {string: ""}
 
 
-class BaseAssumptions(dict):
+class BaseAssumptions(object):
+    """ An simple rule: action store that allows inhering another store
 
-    assumptions = {}
+    """
 
-    def __init__(self, assumptions={}, ignore_base_assumptions=False):
+    def __init__(self, assumptions={}, parent_assumptions={}, inherits=True):
         super(BaseAssumptions, self).__init__()
 
-        # fill assumptions
-        if not ignore_base_assumptions:
-            self.assumptions.update(assumptions)
-        for request, action in self.assumptions.iteritems():
-            self[request] = action
+        self._assumptions = assumptions
+        self._parent_assumptions = parent_assumptions
+        self._inherits = inherits
 
-    def __call__(self, value):
+    def call_action(self, value):
         results = []
-        for pattern, action in self.iteritems():
+        for pattern, action in self.get().iteritems():
             if re.match(pattern, value):
                 if results:
                     raise TypeAssumptionError("Multiple assumptions matching on value {}".format(value))
@@ -65,6 +65,13 @@ class BaseAssumptions(dict):
         else:
             return value
 
+    def get(self):
+        _assumptions = self._parent_assumptions
+        assumptions = deepcopy(self._assumptions)
+        if self._inherits:
+            assumptions.update(_assumptions)
+        return assumptions
+
 
 class TypeAssumptions(BaseAssumptions):
 
@@ -72,8 +79,8 @@ class TypeAssumptions(BaseAssumptions):
                    "^(\d+\.\d+)$": float
                    }
 
-    def __init__(self,  assumptions={}, ignore_base_assumptions=False):
-        super(TypeAssumptions, self).__init__(assumptions, ignore_base_assumptions)
+    def __init__(self,  assumptions={}, parent_assumptions=assumptions, inherit=True):
+        super(TypeAssumptions, self).__init__(assumptions, parent_assumptions, inherit)
 
 
 class TypeAssumptionError(ValueError):

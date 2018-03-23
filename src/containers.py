@@ -154,7 +154,6 @@ class LogContainer(object):
         # our main container will be the instance itself
         if parent == self and init:
             self._create_members(parent.__class__, self, self)
-
         for container in containers:
             # create members
             if container.representative:
@@ -164,7 +163,8 @@ class LogContainer(object):
                              {"representative": container.representative,
                               "pattern": container.pattern,
                               "infer_type": container.infer_type,
-                              "assumptions": parent.assumptions  # todo don't inherit if container has own assumptions
+                              "assumptions": TypeAssumptions(container.assumptions.get(),
+                                                             parent.assumptions.get())
                               }
                              )
                         )
@@ -225,7 +225,7 @@ class LogContainer(object):
 
     @staticmethod
     def _infer_type(cls, attr_name, value):
-        inferred = cls.assumptions(value)
+        inferred = cls.assumptions.call_action(value)
         if not cls.infer_type and inferred != value:
             LOG.info("Match '{0}' for attribute {1} of container {2} ".format(value, attr_name, cls) +
                      "could be automatically converted to {} if you set infer_type to True".format(type(inferred)))
