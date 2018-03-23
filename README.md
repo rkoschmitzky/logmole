@@ -40,6 +40,7 @@ The LogContainer class is a component that represents the content of a regex pat
 | `representative`        | `str`    | A name that represents one or multiple containers and defines where to store a containers matched data.
 | `sub_containers`        | `str`    | Defines the association of a container with child containers.
 | `assumptions`           | sublcass of `BaseAssumptions` | An assumptions object to declare actions on matched data.
+| `infer_type`            | `bool`   | If True (default) it will use the declared assumptions to convert the type of a match automatically.
 
 | Methods                             | Returns  | Description
 |:------------------------------------|:---------|:------------
@@ -219,13 +220,15 @@ Take a look back at the created output again:
 }
 ```
 Notice that the `scene.spooky_ghosts` entry is not a string anymore. This is because the
-`logmole.LogContainer.assumptions` assigns a default `logmole.TypeAssertions` object
-that handles simple conversions.
+`logmole.LogContainer.assumptions` assigns a default `logmole.TypeAssumptions` object
+that handles simple conversions automatically.
 
 An Assumptions object defines a set of regex patterns and associates them with actions that gets
 called in case there is a match.
 
-
+You define if your container should infer the type or not. You can disable it by setting
+`infer_type` to `True`. This only applies to the container itself and doesn't get inherited from
+parent containers.
 
 
 ----
