@@ -60,7 +60,7 @@ Input Log Content
 19:22:40 | WARNING  line 10 in <module> | Found 10000 ghosts
 19:22:41 | DEBUG    line 12 in <module> | Scene contains 3 Monsters
 19:22:43 | DEBUG    line 13 in <module> | Scene contains 1 Girl
-19:22:46 | INFO     line 14 in <module> | Movie finished
+19:22:46 | INFO     line 14 in <module> | Movie ends
 ```
 
 <br>
@@ -70,7 +70,7 @@ Input Log Content
 Assume our extension only includes a pattern like this that shall provide the start end end time.
 ```python
 class MovieLog(LogContainer):
-    pattern = "(?P<start_time>.\d+\:\d+:\d+).*started|(?P<end_time>.\d+\:\d+:\d+).*finished"
+    pattern = "(?P<start_time>.\d+\:\d+:\d+).*started|(?P<end_time>.\d+\:\d+:\d+).*ends"
 ```
 ```python
 >>> log = MovieLog("C:\\tmp\\some.log")
@@ -99,7 +99,7 @@ Instead of dealing with naming conventions categorize your matches you can defin
 This doesn't makes sense necessarily if you are working with a small amount of containers, but it will help when creating more complex nestings.
 ```python
 class TimesContainer(LogContainer):
-    pattern = "(?P<start>.\d+\:\d+:\d+).*started|(?P<end>.\d+\:\d+:\d+).*finished"
+    pattern = "(?P<start>.\d+\:\d+:\d+).*started|(?P<end>.\d+\:\d+:\d+).*ends"
     representative = "times"
 
 
@@ -141,7 +141,7 @@ class EntitiesContainer(LogContainer):
 
 
 class TimesContainer(LogContainer):
-    pattern = "(?P<start>.\d+\:\d+:\d+).*started|(?P<end>.\d+\:\d+:\d+).*finished"
+    pattern = r"(?P<start>.\d+\:\d+:\d+).*started|(?P<end>.\d+\:\d+:\d+).*ends"
     representative = "times"
 
 
@@ -191,7 +191,7 @@ class SceneContainer(LogContainer):
 
 
 class TimesContainer(LogContainer):
-    pattern = "(?P<start>.\d+\:\d+:\d+).*started|(?P<end>.\d+\:\d+:\d+).*finished"
+    pattern = r"(?P<start>.\d+\:\d+:\d+).*started|(?P<end>.\d+\:\d+:\d+).*ends"
     representative = "times"
 
 
@@ -226,8 +226,8 @@ that handles simple conversions automatically.
 An Assumptions object defines a set of regex patterns and associates them with actions that gets
 called in case there is a match.
 
-You define if your container should infer the type or not. You can disable it by setting
-`infer_type` to `True`. This only applies to the container itself and doesn't get inherited from
+You can define if your container should infer the type or not and disable it by setting
+[`infer_type`](#the-logcontainer) to `False`. This only applies to the container itself and doesn't get inherited from
 parent containers.
 
 
@@ -240,6 +240,6 @@ parent containers.
 ----
 
 ### Planned Extensions
-- [Redshift Renderer]()
+- [Redshift Renderer](https://www.redshift3d.com/)
 - [Pixars RenderMan]()
 - [VRay]()
