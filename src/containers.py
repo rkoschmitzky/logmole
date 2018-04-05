@@ -11,16 +11,17 @@ logging.basicConfig(stream=sys.__stdout__, level=logging.INFO)
 
 
 class LogContainer(object):
+    # todo: define slots
     sub_containers = []
     representative = ""
-    pattern = None
+    pattern = ""
     infer_type = True
     assumptions = TypeAssumptions()
     _regex = ""
+    _named_group_filter = re.compile("\?P<(\w*)>")
+    _groups_map = {}
 
     def __init__(self, file):
-        self._groups_map = {}
-        self._named_group_filter = re.compile("\?P<(\w*)>")
         self._generate_chain(self.sub_containers, self, init=True)
         self._parse_file(file)
         self._tree = self._generate_member_tree()
@@ -103,9 +104,9 @@ class LogContainer(object):
 
         named_groups = self._named_group_filter.findall(container_pattern)
         if not named_groups:
-            LOG.warning("Container '{0}' pattern '{1}' ".format(cls.__name__, cls.pattern) + \
-                        "doesn't include a named capturing group. " + \
-                        "No matches will be added.")
+            raise ValueError("Container '{0}' pattern '{1}' ".format(cls.__name__, cls.pattern) +
+                             "doesn't include a named capturing group. " +
+                             "No matches will be added.")
 
         for named_group in named_groups:
             # namespace the group name
@@ -157,18 +158,27 @@ class LogContainer(object):
         for container in containers:
             # create members
             if container.representative:
-                setattr(parent,
-                        container.representative,
-                        type("LogContainer", (LogContainer,),
-                             {"representative": container.representative,
-                              "pattern": container.pattern,
-                              "infer_type": container.infer_type,
-                              "assumptions": TypeAssumptions(container.assumptions.get(),
-                                                             parent.assumptions.get())
-                              }
-                             )
-                        )
+                # if containers share the same parent (represantative container)
+                # merge them
+                if not hasattr(parent, container.representative):
+                    setattr(parent,
+                            container.representative,
+                            type("LogContainer", (LogContainer, ),
+                                 {"representative": container.representative,
+                                  "pattern": container.pattern,
+                                  "infer_type": container.infer_type,
+                                  "assumptions": TypeAssumptions(container.assumptions.get(),
+                                                                 parent.assumptions.get())
+                                  }
+                                 )
+                            )
                 representative = getattr(parent, container.representative)
+                # although the pattern will not be used it is useful for debugging
+                if representative.pattern != container.pattern:
+                    representative.pattern += "|" + container.pattern
+                assert representative.infer_type == container.infer_type, \
+                    "Container '{0}' and '{1}' are sharing the same representative container " + \
+                    "but different states for infer_type conflict with each other."
             else:
                 representative = parent
             self._create_members(container, representative, parent)
