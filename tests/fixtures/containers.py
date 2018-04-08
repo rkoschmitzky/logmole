@@ -34,7 +34,7 @@ class ParentsContainer(LogContainer):
                       ChildrenContainer]
 
 
-class InferTypeTrueContainter(LogContainer):
+class InferTypeTrueContainer(LogContainer):
     pattern = r"father:\s(?P<father>.*)"
     inter_type = True
 
@@ -46,7 +46,7 @@ class InferTypeFalseContainer(LogContainer):
 
 class InterTypeConflictsContainer(LogContainer):
     sub_containers = [InferTypeFalseContainer,
-                      InferTypeTrueContainter]
+                      InferTypeTrueContainer]
 
 
 class MissingGroupContainer(LogContainer):

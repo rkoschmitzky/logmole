@@ -19,9 +19,9 @@ class LogContainer(object):
     assumptions = TypeAssumptions()
     _regex = ""
     _named_group_filter = re.compile("\?P<(\w*)>")
-    _groups_map = {}
 
     def __init__(self, file):
+        self._groups_map = {}
         self._generate_chain(self.sub_containers, self, init=True)
         self._parse_file(file)
         self._tree = self._generate_member_tree()
@@ -176,12 +176,13 @@ class LogContainer(object):
                 # although the pattern will not be used it is useful for debugging
                 if representative.pattern != container.pattern:
                     representative.pattern += "|" + container.pattern
-                assert representative.infer_type == container.infer_type, \
-                    "Container '{0}' and '{1}' are sharing the same representative container " + \
-                    "but different states for infer_type conflict with each other."
             else:
                 representative = parent
             self._create_members(container, representative, parent)
+
+            assert representative.infer_type == container.infer_type, \
+                "Container '{}' infer_type state conflicts with other containers ".format(container.__name__) + \
+                "sharing the same representative container."
 
             # continue generating chain
             self._generate_chain(container.sub_containers, representative)

@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import os
 from unittest import TestCase
 
@@ -7,7 +8,7 @@ from tests.fixtures import containers
 
 
 def init_mock(self, *args, **kwargs):
-    pass
+    self._groups_map = {}
 
 
 class TestContainer(TestCase):
@@ -74,4 +75,12 @@ class TestContainer(TestCase):
         self.assertTrue(issubclass(x.children.child1, LogContainer))
         self.assertTrue(issubclass(x.children.child2, LogContainer))
 
+    def test_tree(self):
+        expected = OrderedDict([('children', {'child1': {'name': 'Dave'},
+                                              'child2': {'name': 'Lea'}}),
+                                ('parents', {'father': 'Peter', 'mother': 'Jane'})
+                                ]
+                               )
+
+        self.assertDictEqual(containers.ParentsContainer(self._log)._tree, expected)
 
