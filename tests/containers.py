@@ -1,5 +1,8 @@
 from collections import OrderedDict
+import json
 import os
+import tempfile
+import uuid
 from unittest import TestCase
 
 from src.containers import LogContainer
@@ -17,6 +20,11 @@ class TestContainer(TestCase):
     def setUpClass(cls):
         cls._log = os.path.join(os.path.dirname(containers.__file__), "log")
         cls._patched_container = type("PatchContainer", (containers.ParentsContainer, ), {"__init__": init_mock})
+        cls._expected_dict = OrderedDict([('children', {'child1': {'name': 'Dave'},
+                                                        'child2': {'name': 'Lea'}}),
+                                          ('parents', {'father': 'Peter', 'mother': 'Jane'})
+                                          ]
+                                         )
 
     def test_group_detection(self):
         with self.assertRaises(ValueError) as e:
@@ -76,11 +84,30 @@ class TestContainer(TestCase):
         self.assertTrue(issubclass(x.children.child2, LogContainer))
 
     def test_tree(self):
-        expected = OrderedDict([('children', {'child1': {'name': 'Dave'},
-                                              'child2': {'name': 'Lea'}}),
-                                ('parents', {'father': 'Peter', 'mother': 'Jane'})
-                                ]
-                               )
+        self.assertDictEqual(containers.ParentsContainer(self._log)._tree, self._expected_dict)
 
-        self.assertDictEqual(containers.ParentsContainer(self._log)._tree, expected)
+    def test_get_value(self):
 
+        x = containers.ParentsContainer(self._log)
+
+        self.assertIsNone(x.get_value("mother"))
+        self.assertEqual(x.get_value("parents", default=6), 6)
+        self.assertEqual(x.get_value("parents.father"), "Peter")
+        self.assertEqual(x.get_value("parents.mother"), "Jane")
+        self.assertEqual(x.get_value("children.child1.name"), "Dave")
+        self.assertEqual(x.get_value("children.child2.name"), "Lea")
+
+    def test_dump(self):
+
+        path = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()) + ".json")
+        containers.ParentsContainer(self._log).dump(path)
+
+        with self.assertRaises(IOError) as e:
+            containers.ParentsContainer(self._log).dump("/++/")
+
+        # check file existence
+        self.assertTrue(os.path.exists(path))
+
+        # check file content
+        f = open(path, "r")
+        self.assertDictEqual(json.loads(f.read()), self._expected_dict)

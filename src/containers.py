@@ -244,7 +244,7 @@ class LogContainer(object):
             return inferred
         return value
 
-    def get_value(self, member_name):
+    def get_value(self, member_name, default=None):
         """ get the value of nested members using a dot separated strings
 
         Args:
@@ -256,6 +256,7 @@ class LogContainer(object):
         for key, value in self._groups_map.iteritems():
             if value["member_name"] == member_name:
                 return getattr(value["obj"], value["attr"])
+        return default
 
     def dump(self, filepath, **json_kwargs):
         """ dumps the representation to a file using json
@@ -273,7 +274,7 @@ class LogContainer(object):
         with open(filepath, 'w') as f:
             try:
                 json.dump(self._tree, f, **json_kwargs)
-            except (OSError, TypeError):
+            except (IOError, OSError, TypeError):
                 raise
 
 
