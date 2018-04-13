@@ -4,7 +4,7 @@ import re
 
 class KeyValueType(object):
 
-    def __init__(self, pattern, key_type, value_type):
+    def __init__(self, pattern, key_type=str, value_type=str):
         """ given a string the class will generate a dictionary with declared key and value types
 
         Object will perform a regex pattern match and expect a 'key' and 'value' named
@@ -36,7 +36,7 @@ class KeyValueType(object):
                                           "a 'key' and 'value' named capturing group."
                                           )
             return {self._key_type(match.groupdict()["key"]):
-                        self._value_type(match.groupdict()["value"])
+                    self._value_type(match.groupdict()["value"])
                     }
         return {string: ""}
 

@@ -1,4 +1,7 @@
 from src.containers import LogContainer
+from src.types import (TypeAssumptions,
+                       KeyValueType
+                       )
 
 
 class Child1Container(LogContainer):
@@ -51,3 +54,12 @@ class InterTypeConflictsContainer(LogContainer):
 
 class MissingGroupContainer(LogContainer):
     pattern = r".*"
+
+
+class MultiMatchContainer(LogContainer):
+    pattern = r".*:\s(?P<family>.*)"
+
+
+class MultiMatchToDictContainer(LogContainer):
+    pattern = r"(?P<family>.*)"
+    assumptions = TypeAssumptions({".*": KeyValueType(r"(?P<key>.*):\s(?P<value>.*)")})

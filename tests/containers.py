@@ -111,3 +111,17 @@ class TestContainer(TestCase):
         # check file content
         f = open(path, "r")
         self.assertDictEqual(json.loads(f.read()), self._expected_dict)
+
+    def test_multi_match(self):
+
+        x = containers.MultiMatchContainer(self._log)
+
+        self.assertIsInstance(x.family, list)
+        self.assertListEqual(sorted(x.family), ["Dave", "Jane", "Lea", "Peter"])
+
+        x = containers.MultiMatchToDictContainer(self._log)
+        self.assertDictEqual(x.family, {'child1': 'Dave',
+                                        'child2': 'Lea',
+                                        'father': 'Peter',
+                                        'mother': 'Jane'}
+                             )
