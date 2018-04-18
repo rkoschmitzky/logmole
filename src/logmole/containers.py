@@ -2,16 +2,14 @@ from collections import OrderedDict
 import logging
 import json
 import re
-import sys
 
 from .types import TypeAssumptions
 
 LOG = logging.getLogger("logmole.container")
-logging.basicConfig(stream=sys.__stdout__, level=logging.INFO)
 
 
 class LogContainer(object):
-    # todo: define slots
+
     sub_containers = []
     representative = ""
     pattern = ""
@@ -39,11 +37,11 @@ class LogContainer(object):
         tree = OrderedDict()
 
         # sort all added members
-        x = [_["member_name"] for _ in self._groups_map.viewvalues()]
-        x.sort()
+        members = [_["member_name"] for _ in self._groups_map.viewvalues()]
+        members.sort()
 
         # create a nested dictionary representing all added members
-        for item in x:
+        for item in members:
             t = tree
             parts = item.split(".")
             for i, part in enumerate(parts):

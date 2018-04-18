@@ -69,6 +69,9 @@ Input Log Content
 
 Assume our extension only includes a pattern like this that shall provide the start end end time.
 ```python
+
+from logmole import LogContainer
+
 class MovieLog(LogContainer):
     pattern = "(?P<start_time>.\d+\:\d+:\d+).*started|(?P<end_time>.\d+\:\d+:\d+).*ends"
 ```

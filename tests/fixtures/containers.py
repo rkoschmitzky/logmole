@@ -7,6 +7,7 @@ from src import (TypeAssumptions,
 class Child1Container(LogContainer):
     pattern = r"child1:\s(?P<name>.*)"
     representative = "child1"
+    bla = 5
 
 
 class Child2Container(LogContainer):
