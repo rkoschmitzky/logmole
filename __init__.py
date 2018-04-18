@@ -1,1 +1,0 @@
-from extensions.arnold.arnold import *

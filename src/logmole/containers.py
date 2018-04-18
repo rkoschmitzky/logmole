@@ -4,7 +4,7 @@ import json
 import re
 import sys
 
-from src.types import TypeAssumptions
+from .types import TypeAssumptions
 
 LOG = logging.getLogger("logmole.container")
 logging.basicConfig(stream=sys.__stdout__, level=logging.INFO)

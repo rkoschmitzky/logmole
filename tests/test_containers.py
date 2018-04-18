@@ -5,7 +5,7 @@ import tempfile
 import uuid
 from unittest import TestCase
 
-from src.containers import LogContainer
+from src import LogContainer
 
 from tests.fixtures import containers
 
@@ -19,7 +19,7 @@ class TestContainer(TestCase):
     @classmethod
     def setUpClass(cls):
         cls._log = os.path.join(os.path.dirname(containers.__file__), "log")
-        cls._patched_container = type("PatchContainer", (containers.ParentsContainer, ), {"__init__": init_mock})
+        cls._patched_container = type("PatchContainer", (containers.ParentsContainer,), {"__init__": init_mock})
         cls._expected_dict = OrderedDict([('children', {'child1': {'name': 'Dave'},
                                                         'child2': {'name': 'Lea'}}),
                                           ('parents', {'father': 'Peter', 'mother': 'Jane'})

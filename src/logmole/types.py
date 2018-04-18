@@ -42,7 +42,7 @@ class KeyValueType(object):
 
 
 class BaseAssumptions(object):
-    """ An simple rule: action store that allows inhering another store
+    """ A simple rule: action store that allows inhering another store
 
     """
 

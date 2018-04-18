@@ -1,5 +1,7 @@
-from src.containers import LogContainer
-from src.types import TypeAssumptions, KeyValueType
+from ..containers import LogContainer
+from ..types import (TypeAssumptions,
+                     KeyValueType
+                     )
 
 
 class ArnoldMemoryContainer(LogContainer):
@@ -13,7 +15,7 @@ class ArnoldSceneContainer(LogContainer):
 
 
 class ArnoldPluginsContainer(LogContainer):
-    pattern = r"\|\s*\w*?\s(?P<names>.*)\.(dll|so|dylib):\s(?P<plugins>\w+).*Arnold\s(?P<plugin_versions>(\d\.?){4})|"
+    pattern = r".*\|\s*\w*?\s(?P<names>.*)\.(dll|so|dylib):\s(?P<plugins>\w+).*Arnold\s(?P<plugin_versions>(\d\.?){4})|"
     pattern += r"\|[^\d]*(?P<plugins_number>\d+)\splugin[^\d]*(?P<number>\d+)\slib"
     representative = "libraries"
 

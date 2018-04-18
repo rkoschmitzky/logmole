@@ -1,7 +1,7 @@
-from src.containers import LogContainer
-from src.types import (TypeAssumptions,
-                       KeyValueType
-                       )
+from src import LogContainer
+from src import (TypeAssumptions,
+                 KeyValueType
+                 )
 
 
 class Child1Container(LogContainer):
