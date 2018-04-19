@@ -22,13 +22,13 @@ classifiers = [
 setup(
     name="logmole",
     version=version,
-    author='Rico Koschmitzky',
-    author_email='contact@ricokoschmitzky.com',
+    author="Rico Koschmitzky",
+    author_email="contact@ricokoschmitzky.com",
+    classifiers=classifiers,
     packages=find_packages("src"),
     package_dir={"": "src"},
     url='https://github.com/rkoschmitzky/logmole',
-    license='LICENSE.md',
+    license="MIT",
     description='An Extendable and Versatile Logparsing System',
-    long_description=open('README.md').read(),
     test_suite="tests"
 )
