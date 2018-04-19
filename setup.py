@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 
-version = __import__("src").__version__
 
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -21,7 +20,7 @@ classifiers = [
 
 setup(
     name="logmole",
-    version=version,
+    version="0.7.2",
     author="Rico Koschmitzky",
     author_email="contact@ricokoschmitzky.com",
     classifiers=classifiers,
