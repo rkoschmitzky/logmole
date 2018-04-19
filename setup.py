@@ -20,7 +20,7 @@ classifiers = [
 
 setup(
     name="logmole",
-    version="0.7.2",
+    version="0.7.3",
     author="Rico Koschmitzky",
     author_email="contact@ricokoschmitzky.com",
     classifiers=classifiers,
