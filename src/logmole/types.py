@@ -4,7 +4,7 @@ import re
 
 class KeyValueType(object):
 
-    def __init__(self, pattern, key_type=str, value_type=str):
+    def __init__(self, pattern, key_type=str, value_type=str, prefix_pattern=""):
         """ given a string the class will generate a dictionary with declared key and value types
 
         Object will perform a regex pattern match and expect a 'key' and 'value' named
@@ -14,10 +14,22 @@ class KeyValueType(object):
             pattern (str): regex pattern
             key_type (cls): type the potential found key will be
             value_type (cls): type the potential found value will have
+            prefix_pattern (str): regex pattern, if set it expects a 'key' named capturing group
+                                  Allows you to extract a specific part of the string and prefix the found 'key' matches
+                                  This is only supported if key_type is str
+
+        Examples:
+            >>> input_string = "transmission      samples  2 / depth  2"
+            >>> convert =  KeyValueType(r"(?P<key>\w+)\s+(?P<value>\d+)", value_type=int, prefix_pattern=r"(?P<key>^\w+\s)")
+            >>> print convert(input_string)
+            {"transmission depth": 8,
+             "transmission samples": 2}
+
         """
         self._key_type = key_type
         self._value_type = value_type
         self._pattern = pattern
+        self._prefix_pattern = prefix_pattern
 
     def __call__(self, string):
         """ converts the original value
@@ -29,15 +41,37 @@ class KeyValueType(object):
             dict: included key value pair
 
         """
-        match = re.search(self._pattern, string)
-        if match:
-            if not ("key" or "value") in match.groupdict():
-                raise TypeAssumptionError("{} needs ".format(self.__class__.__name__) +
-                                          "a 'key' and 'value' named capturing group."
-                                          )
-            return {self._key_type(match.groupdict()["key"]):
-                    self._value_type(match.groupdict()["value"])
-                    }
+
+        # validate proper usage
+        if not ("?P<key>" or "?P<value>") in self._pattern:
+            raise TypeAssumptionError("{} needs ".format(self.__class__.__name__) +
+                                      "a 'key' and 'value' named capturing group."
+                                      )
+        if self._prefix_pattern and "?P<key>" not in self._prefix_pattern:
+            raise TypeAssumptionError("{} prefix pattern needs ".format(self.__class__.__name__) +
+                                      "a 'key' named capturing group."
+                                      )
+
+        # lets find the prefix
+        if self._prefix_pattern:
+            match = re.search(self._prefix_pattern, string)
+            key_prefix = match.groupdict()["key"]
+
+        if self._prefix_pattern:
+            # lets apply the prefix to all 'key' founds
+            match = re.findall(self._pattern, string)
+            if match:
+                if self._prefix_pattern:
+                    assert self._key_type is str, "Prefix support only for string instances"
+                    return {key_prefix + key: value for key, value in match}
+
+                return {string: ""}
+        else:
+            # lets assume we have unique keys and values
+            match = re.search(self._pattern, string)
+            if match:
+                return {match.groupdict()["key"]: match.groupdict()["value"]}
+
         return {string: ""}
 
 
