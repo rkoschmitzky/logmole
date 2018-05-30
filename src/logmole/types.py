@@ -55,15 +55,18 @@ class KeyValueType(object):
         # lets find the prefix
         if self._prefix_pattern:
             match = re.search(self._prefix_pattern, string)
-            key_prefix = match.groupdict()["key"]
+            if not match:
+                raise TypeAssumptionError("No prefix match using '{0}' found in '{1}'.".format(self._prefix_pattern, string))
+            key_prefix = match.groupdict().get("key", None)
 
         if self._prefix_pattern:
             # lets apply the prefix to all 'key' founds
-            match = re.findall(self._pattern, string)
+            match = [_ for _ in re.finditer(self._pattern, string)]
             if match:
+                match = [_.groupdict() for _ in match]
                 if self._prefix_pattern:
                     assert self._key_type is str, "Prefix support only for string instances"
-                    return {key_prefix + key: value for key, value in match}
+                    return {key_prefix + _["key"]: self._value_type(_["value"]) for _ in match}
 
                 return {string: ""}
         else:
