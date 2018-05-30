@@ -3,10 +3,25 @@ from ..types import (TypeAssumptions,
                      KeyValueType
                      )
 
+AI_LIGHT_TYPES = [
+    "point_light",
+    "distant_light",
+    "quad_light",
+    "spot_light",
+    "skydome_light",
+    "cylinder_light",
+    "disk_light",
+    "mesh_light",
+    "photometric_light"
+    ]
 
-class ArnoldLightsContainer(LogContainer):
-    pattern = r"\s?there\sare\s(?P<count>\d+)\slight"
-    representative = "lights"
+
+class ArnoldErrorsContainer(LogContainer):
+    pattern = r"ERROR\s+\|\s+(?P<errors>.*)"
+
+
+class ArnoldWarningsContainer(LogContainer):
+    pattern = r"WARNING\s+\|\s+(?P<warnings>.*)"
 
 
 class ArnoldMemoryContainer(LogContainer):
@@ -23,6 +38,27 @@ class ArnoldShadingContainer(LogContainer):
     pattern = r"\s?(?P<shader_calls>\w+\s+\d+)(\s\(\s*\d+\.\d{2},?\s*\d+\.\d{2}\)\s)\(\s*?\d{1,3}\.\d{2}\%\)$"
 
 
+class ArnoldLightsCountContainer(LogContainer):
+    pattern = r"|".join(["\s+\|\s+(?P<{0}s>\d+)\s{0}$".format(_) for _ in AI_LIGHT_TYPES])
+    representative = "count"
+
+
+class ArnoldLightSamplesContainer(LogContainer):
+    pattern = r"(?P<samples>\w+\:\s+\w+\_light.*sample.*samples?$)"
+    representative = "lights"
+
+
+class ArnoldLightsContainer(LogContainer):
+    sub_containers = [ArnoldLightsCountContainer,
+                      ArnoldLightSamplesContainer]
+    representative = "lights"
+
+
+class ArnoldObjectsContainer(LogContainer):
+    pattern = r"\s?there\sare\s(?P<lighs_count>\d+)\slights?\sand\s(?P<objects_count>\d+)\sobjects?"
+    sub_containers = [ArnoldLightsContainer]
+
+
 class ArnoldSceneContainer(LogContainer):
     sub_containers = [ArnoldShadingContainer,
                       ArnoldRaysContainer,
@@ -32,8 +68,8 @@ class ArnoldSceneContainer(LogContainer):
 
 
 class ArnoldPluginsContainer(LogContainer):
-    pattern = r".*\|\s*\w*?\s(?P<names>.*)\.(dll|so|dylib):\s(?P<plugins>\w+).*Arnold\s(?P<plugins_arnold_versions>(\d\.?){4})|"
-    pattern += r"\|[^\d]*(?P<plugins_count>\d+)\splugin[^\d]*(?P<count>\d+)\slib"
+    pattern = r".*\|\s*\w*?\s(?P<names>.*)\.(dll|so|dylib):\s(?P<plugins>\w+).*Arnold\s(?P<plugins_arnold_versions>(\d\.?){4})"
+    pattern += r"|\|[^\d]*(?P<plugins_count>\d+)\splugin[^\d]*(?P<count>\d+)\slib"
 
 
 class ArnoldLibrariesContainer(LogContainer):
@@ -49,8 +85,8 @@ class ArnoldRenderTimeContainer(LogContainer):
 
 
 class ArnoldTimeContainer(LogContainer):
-    pattern = r".*log\sstarted.*(?P<start_time>(\d{2}\:?){3})|"
-    pattern += r"(?P<total_render_time>(\d+:?){3}).*Arnold\sshutdown"
+    pattern = r".*log\sstarted.*(?P<start_time>(\d{2}\:?){3})"
+    pattern += r"|(?P<total_render_time>(\d+:?){3}).*Arnold\sshutdown"
     representative = "times"
     sub_containers = [ArnoldRenderTimeContainer]
 
@@ -72,7 +108,8 @@ class ArnoldHostContainer(LogContainer):
 
 
 class ArnoldImageContainer(LogContainer):
-    pattern = r"image\sat\s(?P<width>\d+)\sx\s(?P<height>\d+)|"
+    pattern = r"image\sat\s(?P<width>\d+)\sx\s(?P<height>\d+)"
+    pattern += r"|writing\sfile\s[\`\'\"](?P<file_path>.*)[\`\'\"]"
     representative = "image"
 
 
@@ -97,13 +134,19 @@ class ArnoldLogContainer(LogContainer):
                                                         r"(?P<key>\w+)\s+(?P<value>\d+)",
                                                         value_type=int,
                                                         prefix_pattern=r"(?P<key>^\w+\s)"
-                                                                    )
-
-
+                                                                    ),
+                    "\w+:(\s\w+){2}\s\d+\s\w+,\s\d+(\s\w+)": KeyValueType(
+                                                                r"(?P<value>\d+)\s(?P<key>samples?|volume\ssamples?)",
+                                                                value_type=int,
+                                                                prefix_pattern=r"(?P<key>\w+):"
+                                    )
                                    }
                                   )
     sub_containers = [ArnoldHostContainer,
                       ArnoldTimeContainer,
                       ArnoldLibrariesContainer,
                       ArnoldSceneContainer,
-                      ArnoldImageContainer]
+                      ArnoldImageContainer,
+                      ArnoldErrorsContainer,
+                      ArnoldWarningsContainer
+                      ]
