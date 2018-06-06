@@ -1,6 +1,7 @@
 from ..containers import LogContainer
 from ..types import (TypeAssumptions,
-                     KeyValueType
+                     KeyValueType,
+                     TwoDimensionalNumberArray
                      )
 
 AI_LIGHT_TYPES = [
@@ -60,6 +61,7 @@ class ArnoldObjectsContainer(LogContainer):
 
 
 class ArnoldSceneContainer(LogContainer):
+    pattern = r"\|\s+scene\sbounds:\s(?P<bounds>\(.*\)$)"
     sub_containers = [ArnoldShadingContainer,
                       ArnoldRaysContainer,
                       ArnoldMemoryContainer,
@@ -114,8 +116,9 @@ class ArnoldImageContainer(LogContainer):
 
 
 class ArnoldLogContainer(LogContainer):
+    pattern = ".*\|\sArnold\s(?P<version>(\d\.?){4})"
     assumptions = TypeAssumptions({
-                    ".*\s+\d+\.\d+": KeyValueType(
+                    "[a-zA-Z\s]*\s+\d+\.\d+": KeyValueType(
                                            r"(?P<key>\b(\.?\s?\w+){1,}\b)\s+(?P<value>\d+\.\d+)",
                                            key_type=str,
                                            value_type=float
@@ -139,7 +142,11 @@ class ArnoldLogContainer(LogContainer):
                                                                 r"(?P<value>\d+)\s(?P<key>samples?|volume\ssamples?)",
                                                                 value_type=int,
                                                                 prefix_pattern=r"(?P<key>\w+):"
-                                    )
+                                    ),
+                    "\(.*\)\s-\>\s\(.*\)": TwoDimensionalNumberArray(
+                                                r"(?P<number>-?\d+(\.\d+)?)",
+                                                item_array_size=3
+                                                )
                                    }
                                   )
     sub_containers = [ArnoldHostContainer,
