@@ -1,6 +1,40 @@
 from copy import deepcopy
 import re
 
+from .utilities import chunks
+
+
+class TwoDimensionalNumberArray(object):
+    """ given a string the class will generate a two dimensional array/list
+
+    Object will perform a regex pattern match and expect a 'number' named capturing
+    group to identify what to consider as number inside the arrays' items.
+
+    Args:
+        pattern (str): regex pattern
+    Keyword Args:
+        item_array_size (int): length each individual item will have
+
+    Notes:
+        Expects that all items will use the same amount of numbers.
+
+    """
+    def __init__(self, pattern, item_array_size=1):
+        self._pattern = pattern
+        self._item_array_size = item_array_size
+
+    def __call__(self, string):
+        match = [_ for _ in re.finditer(self._pattern, string)]
+
+        if match:
+            return [chunk for chunk in chunks(
+                        [float(_.groupdict()["number"]) for _ in match],
+                        self._item_array_size
+                        )
+                    ]
+
+        return string
+
 
 class KeyValueType(object):
 
@@ -12,6 +46,7 @@ class KeyValueType(object):
 
         Args:
             pattern (str): regex pattern
+        Keyword Args:
             key_type (cls): type the potential found key will be
             value_type (cls): type the potential found value will have
             prefix_pattern (str): regex pattern, if set it expects a 'key' named capturing group
