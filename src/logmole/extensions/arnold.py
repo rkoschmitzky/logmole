@@ -32,6 +32,7 @@ class ArnoldMemoryContainer(LogContainer):
 class ArnoldRaysContainer(LogContainer):
     pattern = r"\s(?P<count>\w+\s+\d+)\s\(\s*\d+\.\d+.*(\(\s*\d\.\d+\)\s\(\s*\d+\))$"
     pattern += r"|\|\s+(?P<sample_depths>(diffuse|specular|transmission|volume\sindirect)\s+.*depth\>?\s+\d+)"
+    pattern += r"|(?P<anti_aliasing_samples>\d+)\sAA\ssamples?"
     representative = "rays"
 
 
