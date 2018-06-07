@@ -56,9 +56,9 @@ class ArnoldLightsContainer(LogContainer):
     representative = "lights"
 
 
-class ArnoldObjectsContainer(LogContainer):
-    pattern = r"\s?there\sare\s(?P<lighs_count>\d+)\slights?\sand\s(?P<objects_count>\d+)\sobjects?"
-    sub_containers = [ArnoldLightsContainer]
+class ArnoldGeometryContainer(LogContainer):
+    pattern = r"\|\s+(?P<count>\d+\s(polymesh|curves)$)"
+    representative = "geometry"
 
 
 class ArnoldSceneContainer(LogContainer):
@@ -66,7 +66,8 @@ class ArnoldSceneContainer(LogContainer):
     sub_containers = [ArnoldShadingContainer,
                       ArnoldRaysContainer,
                       ArnoldMemoryContainer,
-                      ArnoldLightsContainer]
+                      ArnoldLightsContainer,
+                      ArnoldGeometryContainer]
     representative = "scene"
 
 
@@ -117,7 +118,6 @@ class ArnoldImageContainer(LogContainer):
 
 
 class ArnoldLogContainer(LogContainer):
-    pattern = ".*\|\sArnold\s(?P<version>(\d\.?){4})"
     assumptions = TypeAssumptions({
                     "[a-zA-Z\s]*\s+\d+\.\d+": KeyValueType(
                                            r"(?P<key>\b(\.?\s?\w+){1,}\b)\s+(?P<value>\d+\.\d+)",
@@ -143,6 +143,11 @@ class ArnoldLogContainer(LogContainer):
                                                                 r"(?P<value>\d+)\s(?P<key>samples?|volume\ssamples?)",
                                                                 value_type=int,
                                                                 prefix_pattern=r"(?P<key>\w+):"
+                                    ),
+                    "^\d+\s[a-z_]+$": KeyValueType(
+                                        r"(?P<value>\d+)\s(?P<key>.*?)",
+                                        value_type=int,
+                                        prefix_pattern=r"(?P<key>[a-z_]*$)"
                                     ),
                     "\(.*\)\s-\>\s\(.*\)": TwoDimensionalNumberArray(
                                                 r"(?P<number>-?\d+(\.\d+)?)",
