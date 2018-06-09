@@ -113,8 +113,15 @@ class KeyValueType(object):
         return {string: ""}
 
 
+class NoneType(object):
+    """ Lets make None a callable which always converts to None """
+
+    def __call__(self, string):
+        return None
+
+
 class BaseAssumptions(object):
-    """ A simple rule: action store that allows inhering another store
+    """ A simple rule: action store that allows inhering another stores
 
     """
 
@@ -126,6 +133,9 @@ class BaseAssumptions(object):
         self._inherits = inherits
 
     def call_action(self, value):
+        """ Calls expected action for when there is an assumed pattern match """
+        if not isinstance(value, str):
+            raise TypeAssumptionError("Value has to be of type 'str'.")
         results = []
         for pattern, action in self.get().iteritems():
             if re.match(pattern, value):
@@ -138,6 +148,7 @@ class BaseAssumptions(object):
             return value
 
     def get(self):
+        """ If the Assumption will inherit parent assumptions add them and get the updated result """
         _assumptions = self._parent_assumptions
         assumptions = deepcopy(self._assumptions)
         if self._inherits:
@@ -147,9 +158,12 @@ class BaseAssumptions(object):
 
 class TypeAssumptions(BaseAssumptions):
 
-    assumptions = {"^(\d+)$": int,
-                   "^(\d+\.\d+)$": float
-                   }
+    # handle all obvious assumptions we can make
+    assumptions = {
+        "^(\-?\d+)$": int,
+        "^(\-?\d+\.\d+)$": float,
+        "^((N|n)one)$|^((N|n)ull)$|^((N|n)il)$": NoneType()
+    }
 
     def __init__(self,  assumptions={}, parent_assumptions=assumptions, inherit=True):
         super(TypeAssumptions, self).__init__(assumptions, parent_assumptions, inherit)
