@@ -108,7 +108,7 @@ class KeyValueType(object):
             # lets assume we have unique keys and values
             match = re.search(self._pattern, string)
             if match:
-                return {match.groupdict()["key"]: match.groupdict()["value"]}
+                return {self._key_type(match.groupdict()["key"]): self._value_type(match.groupdict()["value"])}
 
         return {string: ""}
 
