@@ -1,8 +1,8 @@
 import mock
 from unittest import TestCase
 
-from src import (TypeAssumptions,
-                 KeyValueType
+from src import (KeyValueType,
+                 TypeAssumptions
                  )
 
 
@@ -34,8 +34,27 @@ class TestKeyValueType(TestCase):
 
     def test_call_simple(self):
         with mock.patch.object(self, "key_value_type",
-                               KeyValueType("(?P<key>[a-z])+\=(?P<value>\d+)",
+                               KeyValueType("(?P<key>[a-z])+\=(?P<value>\d+)$",
                                             value_type=float)
                                ):
-            self.assertDictEqual({"a": 1}, self.key_value_type("a=1"))
+            self.assertDictEqual({"a": 1.0}, self.key_value_type("a=1"))
+            # default behaviour when there is no match
+            self.assertEqual({"bc=5.0.0": ""}, self.key_value_type("bc=5.0.0"))
+
+    def test_call_invalid_pattern(self):
+        with mock.patch.object(self, "key_value_type",
+                               KeyValueType("(P?<test>.*)")):
+            with self.assertRaises(ValueError) as e:
+                self.key_value_type("a")
+                self.assertIn("needs a 'key' and 'value' named capturing group")
+
+    def test_call_with_prefix_pattern(self):
+        with mock.patch.object(self, "key_value_type",
+                               KeyValueType("(?P<value>\d+)\s(?P<key>[a-z]+)",
+                                            value_type=int,
+                                            prefix_pattern="(?P<key>[a-z]+):")):
+            self.assertDictEqual({'testfoo': 1, 'testbar': 2},
+                                 self.key_value_type("test: 1 foo, 2 bar"))
+
+
 
