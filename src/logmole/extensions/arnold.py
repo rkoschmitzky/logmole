@@ -33,6 +33,18 @@ class ArnoldRaysContainer(LogContainer):
     pattern = r"\s(?P<count>\w+\s+\d+)\s\(\s*\d+\.\d+.*(\(\s*\d\.\d+\)\s\(\s*\d+\))$"
     pattern += r"|\|\s+(?P<sample_depths>(diffuse|specular|transmission|volume\sindirect)\s+.*depth\>?\s+\d+)"
     pattern += r"|(?P<anti_aliasing_samples>\d+)\sAA\ssamples?"
+
+    assumptions = TypeAssumptions({
+            # ray depth and samples coversion
+            # "<ray_type>     samples  <nr> / depth  <nr>" to {"<ray_type> samples": <nr>, "<ray_type> depth": <nr>}
+            ".*\s+\d+\s+\/\s+\w+\s+\d+": KeyValueType(
+                r"(?P<key>\w+)\s+(?P<value>\d+)",
+                value_type=int,
+                prefix_pattern=r"(?P<key>^\w+\s)"
+            )
+        }
+    )
+
     representative = "rays"
 
 
@@ -47,6 +59,17 @@ class ArnoldLightsCountContainer(LogContainer):
 
 class ArnoldLightSamplesContainer(LogContainer):
     pattern = r"(?P<samples>\w+\:\s+\w+\_light.*sample.*samples?$)"
+    assumptions = TypeAssumptions(
+        {
+            # light samples and volume samples conversion
+            # <light>: <nr> samples <nr> volume samples to {"<light> samples": <nr>, "<light> volume samples": <nr>
+            "\w+:(\s\w+){2}\s\d+\s\w+,\s\d+(\s\w+)": KeyValueType(
+                r"(?P<value>\d+)\s(?P<key>samples?|volume\ssamples?)",
+                value_type=int,
+                prefix_pattern=r"(?P<key>\w+):"
+            )
+        }
+    )
     representative = "lights"
 
 
@@ -63,6 +86,14 @@ class ArnoldGeometryContainer(LogContainer):
 
 class ArnoldSceneContainer(LogContainer):
     pattern = r"\|\s+scene\sbounds:\s(?P<bounds>\(.*\)$)"
+    assumptions = TypeAssumptions({
+        # scene bounds conversion "(x x x) -> (x x x)" to  [[x, x, x], [x, x, x]]
+        "\(.*\)\s-\>\s\(.*\)": TwoDimensionalNumberArray(
+            r"(?P<number>-?\d+(\.\d+)?)",
+            item_array_size=3
+            )
+        }
+    )
     sub_containers = [ArnoldShadingContainer,
                       ArnoldRaysContainer,
                       ArnoldMemoryContainer,
@@ -119,6 +150,7 @@ class ArnoldImageContainer(LogContainer):
 
 class ArnoldLogContainer(LogContainer):
     assumptions = TypeAssumptions({
+                    # less specific assumptions with higher occurance
                     "[a-zA-Z\s]*\s+\d+\.\d+": KeyValueType(
                                            r"(?P<key>\b(\.?\s?\w+){1,}\b)\s+(?P<value>\d+\.\d+)",
                                            key_type=str,
@@ -134,27 +166,15 @@ class ArnoldLogContainer(LogContainer):
                                             key_type=str,
                                             value_type=str
                                                           ),
-                    ".*\s+\d+\s+\/\s+\w+\s+\d+": KeyValueType(
-                                                        r"(?P<key>\w+)\s+(?P<value>\d+)",
-                                                        value_type=int,
-                                                        prefix_pattern=r"(?P<key>^\w+\s)"
-                                                                    ),
-                    "\w+:(\s\w+){2}\s\d+\s\w+,\s\d+(\s\w+)": KeyValueType(
-                                                                r"(?P<value>\d+)\s(?P<key>samples?|volume\ssamples?)",
-                                                                value_type=int,
-                                                                prefix_pattern=r"(?P<key>\w+):"
-                                    ),
+                    # digit any_character conversion into {any_character: int}
                     "^\d+\s[a-z_]+$": KeyValueType(
-                                        r"(?P<value>\d+)\s(?P<key>.*?)",
-                                        value_type=int,
-                                        prefix_pattern=r"(?P<key>[a-z_]*$)"
-                                    ),
-                    "\(.*\)\s-\>\s\(.*\)": TwoDimensionalNumberArray(
-                                                r"(?P<number>-?\d+(\.\d+)?)",
-                                                item_array_size=3
-                                                )
-                                   }
-                                  )
+                        r"(?P<value>\d+)\s(?P<key>.*?)",
+                        value_type=int,
+                        prefix_pattern=r"(?P<key>[a-z_]*$)"
+                        ),
+
+        }
+    )
     sub_containers = [ArnoldHostContainer,
                       ArnoldTimeContainer,
                       ArnoldLibrariesContainer,
