@@ -25,7 +25,7 @@ class LogContainer(object):
         self._tree = self._generate_member_tree()
 
     def __repr__(self):
-        return "{}".format(json.dumps(self._tree, indent=4))
+        return "{}".format(json.dumps(self._tree, indent=4, default=str))
 
     def _generate_member_tree(self):
         """ recreate a sorted tree structure that represents all added members
@@ -268,6 +268,7 @@ class LogContainer(object):
         """
         json_kwargs.setdefault("indent", 4)
         json_kwargs.setdefault("sort_keys", True)
+        json_kwargs.setdefault("default", str)
 
         with open(filepath, 'w') as f:
             try:

@@ -1,7 +1,9 @@
+from datetime import time
 import mock
 from unittest import TestCase
 
 from src import (KeyValueType,
+                 TimeType,
                  TypeAssumptions
                  )
 
@@ -57,4 +59,17 @@ class TestKeyValueType(TestCase):
                                  self.key_value_type("test: 1 foo, 2 bar"))
 
 
+class TestTimeType(TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.time_type = None
+
+    def test_call(self):
+        with mock.patch.object(self, "time_type",
+                               TimeType()):
+            self.assertEqual(time(5, 6, 3), self.time_type("5:6:3"))
+            self.assertEqual(time(5, 6, 3), self.time_type("05:6:3"))
+            self.assertEqual(time(5, 6, 3, 0), self.time_type("5:6:3:00000"))
+            self.assertEqual(time(5, 6, 3, 1), self.time_type("5:6:3:1"))
+            self.assertEqual("24:2:1", self.time_type("24:2:1"))
