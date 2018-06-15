@@ -1,7 +1,49 @@
 from copy import deepcopy
+import datetime
+import logging
 import re
 
 from .utilities import chunks
+
+LOG = logging.getLogger("logmole.types")
+
+
+class TimeType(object):
+    """ given a string the class will generate a datetime.time object
+
+    Object will automatically detect a time signature under specific conditions
+    - `:`separated
+    - given at least hour:minute:second
+    - hours < 24
+    - minutes < 60
+    - seconds < 60
+    - microseconds < 999999
+
+    microsecond can be detected as well, but is considered as optional
+    """
+    def __call__(self, string):
+        # we always expect always h:m:s information h:m:s:ms is optional
+        pattern = r"^(?P<h>\d{1,2})\:(?P<m>\d{1,2})\:(?P<s>\d{1,2})(\:(?P<ms>\d{1,6}))?$"
+
+        match = re.match(pattern, string)
+        if match:
+
+            # convert non existing microseconds
+            group_dict = match.groupdict()
+            if group_dict["ms"] is None:
+                group_dict["ms"] = 0
+
+            time = [int(group_dict["h"]), int(group_dict["m"]), int(group_dict["s"]), int(group_dict["ms"])]
+
+            if time[0] < 24 and time[1] <= 60 and time[2] < 60 and time[3] <= 999999:
+                return datetime.time(*time)
+            else:
+                try:
+                    raise TypeAssumptionError("No valid time signature.")
+                except TypeAssumptionError:
+                    LOG.error("Unable to convert '{}' to time object.", exc_info=True)
+
+        return string
 
 
 class TwoDimensionalNumberArray(object):
