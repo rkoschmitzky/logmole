@@ -8,6 +8,7 @@ log files.
 ### Table of Contents
 
 - [Project Goals](#what-can-it-do-for-you)
+- [Installation](#installation)
 - [How to use](#how-to-use)
   - [LogContainer](#the-logcontainer)
   - [Patterns](#patterns)
@@ -15,6 +16,7 @@ log files.
   - [Assumptions](#assumptions)
 - [Included Extensions](#included-extensions)
 - [Planned Extensions](#planned-extensions)
+  - [Arnold Renderer Extension](#arnold-renderer-extension)
 
 ### What can it do for you?
 - provide a framework to create reusable and modular logparsers based on regular expressions
@@ -27,6 +29,13 @@ log files.
 - write extensions and contribute
 
 -----
+
+### Installation
+
+Logmole can be installed via `pip`.
+```bash
+pip install logmole
+```
 
 ### How to use
 
@@ -238,7 +247,46 @@ parent containers.
 
 ### Included Extensions
 
-- [Arnold Renderer (in progress)](http://solidangle.com/)
+#### Arnold Renderer Extension
+An extension for the lovely [Arnold Renderer](http://solidangle.com/).
+
+##### Usage
+```python
+from logmole.extensions import ArnoldLogContainer
+container = ArnoldLogContainer("C:\\tmp\\some_arnold_log.log")
+```
+
+----
+
+##### Supported Fields
+
+- `host`
+  - `app`
+    - `version`
+  - `machine`
+    - `name`
+    - `pid`
+- `image`
+  - `file_path`
+  - `height`
+  - `width`
+- `libraries`
+  - `arnold_version`
+  - `clm_version`
+  - `oiio_version`
+  - `osl_version`
+  - `plugins`
+  - `plugins_ arnold_versions`
+  - `plugins_count`
+  - `rlm_version`
+  - `vdb_version`
+- `scene`
+  - `geometry`
+    - `count`
+  - `lights`
+    - `count`
+    -
+
 
 ----
 
