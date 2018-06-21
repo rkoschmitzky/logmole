@@ -15,6 +15,7 @@ log files.
   - [Grouping Containers](#grouping-containers)
   - [Assumptions](#assumptions)
     - [Native Type Assumptions](#native-type-assumptions)
+    - [Custom Type Assumptions](#custom-type-assumptions)
     - [Custom Types](#custom-types)
 - [Included Extensions](#included-extensions)
   - [Arnold Renderer Extension](#arnold-renderer-extension)
@@ -218,6 +219,10 @@ class MovieLog(LogContainer):
 <br>
 
 ###### Assumptions
+
+An Assumptions object defines a set of regex patterns and associates them with actions that gets
+called in case there is a match.
+
 Take a look back at the created output again:
 ```
 {
@@ -238,15 +243,7 @@ Notice that the `scene.spooky_ghosts` entry is not a string anymore. This is bec
 `logmole.LogContainer.assumptions` assigns a default `logmole.TypeAssumptions` object
 that handles simple conversions automatically.
 
-An Assumptions object defines a set of regex patterns and associates them with actions that gets
-called in case there is a match.
-
-You can define if your container should infer the type or not and disable it by setting
-[`infer_type`](#the-logcontainer) to `False`. This only applies to the container itself and doesn't get inherited from
-parent containers.
-Find out more about [native type assumptions](#native-type-assumptions):
-
-----
+---
 
 ##### Native Type Assumptions
 
@@ -264,11 +261,56 @@ This includes support for:
 
 ----
 
+
+You can define whether your container should infer the type or not and disable it by setting
+[`infer_type`](#the-logcontainer) to `False`. This only applies to the container itself and doesn't get inherited from
+parent containers.
+Find out more about [native type assumptions](#native-type-assumptions):
+
+---
+
+##### Custom Type Assumptions
+
+You can also extend existing assumptions or create an individual set of assumptions per container.
+Lets demonstrate this on our `TimesContainer` using a custom available [`TimeType`](#timetype) object.
+```python
+from logmole import (TypeAssumptions,
+                     TimeType
+                    )
+```
+
+```python
+class TimesContainer(LogContainer):
+    assumptions = TypeAssumptions({".*": TimeType())
+    pattern = r"(?P<start>.\d+\:\d+:\d+).*started|(?P<end>.\d+\:\d+:\d+).*ends"
+    representative = "times"
+```
+
+```python
+>>> log = MovieLog("C:\\tmp\\some.log")
+>>> print type(log.times.start)
+<type 'datetime.time'>
+```
+
+A `TypeAssumptions` class has to be initialized with a dictionary defining patterns and their corresponding types.
+In our case we can expect that everything that was matched by our `TimesContainer.pattern` before will be
+a string of a valid `H:M:S` format. So we don't need a more precise pattern within our TypeAssumptions and can expect
+those string would always fulfill the criteria to be convertable by our [`TimeType`](#timetype) object.
+The `TypeAssumptions` class always allows us to inherit existing assumptions from parent containers. This is set by default.
+You can ignore parent assumptions when initializing the `TypeAssumptions` class using `inherit=False`.
+This way you can avoid potential match conflicts when using more sloppy patterns.
+
+But generally spoken your patterns should be as precise as possible when using them on containers that hold a bunch
+of sub-containers.
+
+----
+
+
 #### Custom Types
 
-Native Type conversions might not be sufficient enough for your. There might be cases where you want to bring
-your extracted information into a different format. There are custom types that can help you doing that or you
-can write your own specidif one.
+Native Type conversions might not be sufficient enough for you. There might be cases where you want to convert
+your extracted information to a more specific type. There are custom types that can help you doing that or you
+can write your own.
 
 ##### KeyValueType
 
@@ -277,12 +319,31 @@ can write your own specidif one.
 
 ##### TimeType
 
-**TO BE CONTINUED**
+This object doesn't need any extra information. It will check for a valid input string and return a `datatime.time`
+instance.
 
 
 ##### TwoDimensionalNumberArray
 
-**TO BE CONTINUED**
+An object helpful to convert a string into an even sized two dimensional array with automatic float conversion for each item.
+It always expects a `number` named match group within the pattern.
+
+Example:
+```python
+>>> array_type_1 = TwoDimensionalNumberArray("(?P<number>-?\d+)", item_array_size=1)
+>>> array_type_2 = TwoDimensionalNumberArray("(?P<number>-?\d+)", item_array_size=2)
+>>> array_type_3 = TwoDimensionalNumberArray("(?P<number>-?\d+)", item_array_size=3)
+
+>>> input = "1, 2, 4 -4, -10, 1"
+>>> print array_type_1(input)
+>>> print array_type_2(input)
+>>> print array_type_3(input)
+
+[[1.0], [2.0], [4.0], [-4.0], [-10.0], [1.0]]
+[[1.0, 2.0], [4.0, -4.0], [-10.0, 1.0]]
+[[1.0, 2.0, 4.0], [-4.0, -10.0, 1.0]]
+```
+
 
 ----
 
