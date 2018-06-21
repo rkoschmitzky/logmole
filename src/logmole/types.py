@@ -204,7 +204,7 @@ class TypeAssumptions(BaseAssumptions):
     assumptions = {
         "^(\-?\d+)$": int,
         "^(\-?\d+\.\d+)$": float,
-        "^((N|n)one)$|^((N|n)ull)$|^((N|n)il)$": NoneType()
+        "^((N|n)one)$|^NONE$|^((N|n)ull)$|^NULL$|^((N|n)il)$|^NIL$": NoneType()
     }
 
     def __init__(self,  assumptions={}, parent_assumptions=assumptions, inherit=True):

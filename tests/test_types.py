@@ -25,6 +25,9 @@ class TestTypeAssumptions(TestCase):
         self.assertEqual(None, self._assumptions.call_action("null"))
         self.assertEqual(None, self._assumptions.call_action("Nil"))
         self.assertEqual(None, self._assumptions.call_action("none"))
+        self.assertEqual(None, self._assumptions.call_action("NONE"))
+        self.assertEqual(None, self._assumptions.call_action("NIL"))
+        self.assertEqual(None, self._assumptions.call_action("NULL"))
         self.assertEqual("NUll", self._assumptions.call_action("NUll"))
 
 
