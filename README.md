@@ -14,18 +14,21 @@ log files.
   - [Patterns](#patterns)
   - [Grouping Containers](#grouping-containers)
   - [Assumptions](#assumptions)
+    - [Native Type Assumptions](#native-type-assumptions)
+    - [Custom Types](#custom-types)
 - [Included Extensions](#included-extensions)
-- [Planned Extensions](#planned-extensions)
   - [Arnold Renderer Extension](#arnold-renderer-extension)
+    - [Available Fields](#available-arnoldlogcontainer-fields)
+- [Planned Extensions](#planned-extensions)
 
 ### What can it do for you?
 - provide a framework to create reusable and modular logparsers based on regular expressions
 - simplify the process of chaining multiple regex patterns
-- dynamic object and attributes creation based on named capturing groups and representatives
+- dynamic object and fields creation based on named capturing groups and representatives
 - help with automatic and robust type conversions
-- ships with some pre-build extensions
+- offer some pre-build extensions
 
-**Contrary to, what have you to do?**
+**Contrary to, what do you have to do?**
 - write extensions and contribute
 
 -----
@@ -241,7 +244,45 @@ called in case there is a match.
 You can define if your container should infer the type or not and disable it by setting
 [`infer_type`](#the-logcontainer) to `False`. This only applies to the container itself and doesn't get inherited from
 parent containers.
+Find out more about [native type assumptions](#native-type-assumptions):
 
+----
+
+##### Native Type Assumptions
+
+As long as `infer_type ` is set to `True` the LogContainer will always try to convert native
+types.
+
+This includes support for:
+
+| Type       | Used Regex
+|:-----------|:------------------------------------------------------|
+| `int`      | `^(\-?\d+)$`
+| `float`    | `(\-?\d+\.\d+)$`
+| `None`     | `^((N|n)one)$|^NONE$|^((N|n)ull)$|^NULL$|^((N|n)il)$|^NIL$`
+
+
+----
+
+#### Custom Types
+
+Native Type conversions might not be sufficient enough for your. There might be cases where you want to bring
+your extracted information into a different format. There are custom types that can help you doing that or you
+can write your own specidif one.
+
+##### KeyValueType
+
+**TO BE CONTINUED**
+
+
+##### TimeType
+
+**TO BE CONTINUED**
+
+
+##### TwoDimensionalNumberArray
+
+**TO BE CONTINUED**
 
 ----
 
@@ -253,40 +294,49 @@ An extension for the lovely [Arnold Renderer](http://solidangle.com/).
 ##### Usage
 ```python
 from logmole.extensions import ArnoldLogContainer
-container = ArnoldLogContainer("C:\\tmp\\some_arnold_log.log")
+arnold_log = ArnoldLogContainer("C:\\tmp\\some_arnold_log.log")
 ```
 
 ----
 
-##### Supported Fields
+##### Available ArnoldLogContainer Fields
 
-- `host`
-  - `app`
-    - `version`
-  - `machine`
-    - `name`
-    - `pid`
-- `image`
-  - `file_path`
-  - `height`
-  - `width`
-- `libraries`
-  - `arnold_version`
-  - `clm_version`
-  - `oiio_version`
-  - `osl_version`
-  - `plugins`
-  - `plugins_ arnold_versions`
-  - `plugins_count`
-  - `rlm_version`
-  - `vdb_version`
-- `scene`
-  - `geometry`
-    - `count`
-  - `lights`
-    - `count`
-    -
-
+- `errors`: all errors messages `str` or `list`
+- `host`: host information `LogContainer`
+  - `app`: name of the host application Arnold is running with `str`
+    - `version`: version of the host application Arnold is running with `str`
+  - `machine`:
+    - `name`: name of the machine Arnold is running on `str`
+    - `pid`: process id number `int`
+- `image`: image information `LogContainer`
+  - `file_path`: path to the generated image `str`
+  - `height`: image height `float`
+  - `width`: image width `float`
+- `libraries`: libraries information `LogContainer`
+  - `arnold_version`: Arnold core version `str`
+  - `clm_version` clm version `str`
+  - `oiio_version` OpenImageIO version `str`
+  - `osl_version` OpenShadingLanguage version `str`
+  - `plugins` loaded plugins `list`
+  - `plugins_ arnold_versions`: arnold version all plugins are using `str` or `list`
+  - `plugins_count`: number of loaded plugins `int`
+  - `rlm_version`: Reprise License Manager version `str`
+  - `vdb_version`: OpenVDB version `str`
+- `scene`: scene information `LogContainer`
+  - `geometry`: geometry objects information `LogContainer`
+    - `count`: number of geometry objects in scene `int`
+  - `lights`: scene lights information `LogContainer`
+    - `count`: number of lights in scene `int`
+    - `samples`: per-light sample & volume sample information `dict`
+  - `memory_consumption`: information regarding scene memory usage `dict`
+  - `rays`: rays information `LogContainer`
+    - `count`: number of rays per type `dict`
+    - `sample_depths`: sample and depth information per type `dict`
+  - `shader_calls` shader calls per type `dict`
+- `times`: time related information `LogContainer`
+  - `rendering`: diverse times `dict`
+  - `start`: render start time `datetime.time`
+- `warnings`: all warning messages `str` or `list`
 
 ----
 
