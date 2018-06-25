@@ -1,7 +1,7 @@
 from ..containers import LogContainer
 from ..types import (TypeAssumptions,
                      KeyValueType,
-                     TwoDimensionalNumberArray
+                     TwoDimensionalNumberArrayType
                      )
 
 AI_LIGHT_TYPES = [
@@ -88,7 +88,7 @@ class ArnoldSceneContainer(LogContainer):
     pattern = r"\|\s+scene\sbounds:\s(?P<bounds>\(.*\)$)"
     assumptions = TypeAssumptions({
         # scene bounds conversion "(x x x) -> (x x x)" to  [[x, x, x], [x, x, x]]
-        "\(.*\)\s-\>\s\(.*\)": TwoDimensionalNumberArray(
+        "\(.*\)\s-\>\s\(.*\)": TwoDimensionalNumberArrayType(
             r"(?P<number>-?\d+(\.\d+)?)",
             item_array_size=3
             )
