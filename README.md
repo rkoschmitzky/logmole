@@ -8,25 +8,38 @@ log files.
 ### Table of Contents
 
 - [Project Goals](#what-can-it-do-for-you)
+- [Installation](#installation)
 - [How to use](#how-to-use)
   - [LogContainer](#the-logcontainer)
   - [Patterns](#patterns)
   - [Grouping Containers](#grouping-containers)
   - [Assumptions](#assumptions)
+    - [Native Type Assumptions](#native-type-assumptions)
+    - [Custom Type Assumptions](#custom-type-assumptions)
+    - [Custom Types](#custom-types)
 - [Included Extensions](#included-extensions)
+  - [Arnold Renderer Extension](#arnold-renderer-extension)
+    - [Available Fields](#available-arnoldlogcontainer-fields)
 - [Planned Extensions](#planned-extensions)
 
 ### What can it do for you?
 - provide a framework to create reusable and modular logparsers based on regular expressions
 - simplify the process of chaining multiple regex patterns
-- dynamic object and attributes creation based on named capturing groups and representatives
+- dynamic object and fields creation based on named capturing groups and representatives
 - help with automatic and robust type conversions
-- ships with some pre-build extensions
+- offer some pre-build extensions
 
-**Contrary to, what have you to do?**
+**Contrary to, what do you have to do?**
 - write extensions and contribute
 
 -----
+
+### Installation
+
+Logmole can be installed via `pip`.
+```bash
+pip install logmole
+```
 
 ### How to use
 
@@ -206,6 +219,10 @@ class MovieLog(LogContainer):
 <br>
 
 ###### Assumptions
+
+An Assumptions object defines a set of regex patterns and associates them with actions that gets
+called in case there is a match.
+
 Take a look back at the created output again:
 ```
 {
@@ -226,19 +243,161 @@ Notice that the `scene.spooky_ghosts` entry is not a string anymore. This is bec
 `logmole.LogContainer.assumptions` assigns a default `logmole.TypeAssumptions` object
 that handles simple conversions automatically.
 
-An Assumptions object defines a set of regex patterns and associates them with actions that gets
-called in case there is a match.
+---
 
-You can define if your container should infer the type or not and disable it by setting
+##### Native Type Assumptions
+
+As long as `infer_type ` is set to `True` the LogContainer will always try to convert native
+types.
+
+This includes support for:
+
+| Type       | Used Regex
+|:-----------|:------------------------------------------------------|
+| `int`      | `^(\-?\d+)$`
+| `float`    | `(\-?\d+\.\d+)$`
+| `None`     | `^((N|n)one)$|^NONE$|^((N|n)ull)$|^NULL$|^((N|n)il)$|^NIL$`
+
+
+----
+
+
+You can define whether your container should infer the type or not and disable it by setting
 [`infer_type`](#the-logcontainer) to `False`. This only applies to the container itself and doesn't get inherited from
 parent containers.
+Find out more about [native type assumptions](#native-type-assumptions):
+
+---
+
+##### Custom Type Assumptions
+
+You can also extend existing assumptions or create an individual set of assumptions per container.
+Lets demonstrate this on our `TimesContainer` using a custom available [`TimeType`](#timetype) object.
+```python
+from logmole import (TypeAssumptions,
+                     TimeType
+                    )
+```
+
+```python
+class TimesContainer(LogContainer):
+    assumptions = TypeAssumptions({".*": TimeType())
+    pattern = r"(?P<start>.\d+\:\d+:\d+).*started|(?P<end>.\d+\:\d+:\d+).*ends"
+    representative = "times"
+```
+
+```python
+>>> log = MovieLog("C:\\tmp\\some.log")
+>>> print type(log.times.start)
+<type 'datetime.time'>
+```
+
+A `TypeAssumptions` class has to be initialized with a dictionary defining patterns and their corresponding types.
+In our case we can expect that everything that was matched by our `TimesContainer.pattern` before will be
+a string of a valid `H:M:S` format. So we don't need a more precise pattern within our TypeAssumptions and can expect
+those string would always fulfill the criteria to be convertable by our [`TimeType`](#timetype) object.
+The `TypeAssumptions` class always allows us to inherit existing assumptions from parent containers. This is set by default.
+You can ignore parent assumptions when initializing the `TypeAssumptions` class using `inherit=False`.
+This way you can avoid potential match conflicts when using more sloppy patterns.
+
+But generally spoken your patterns should be as precise as possible when using them on containers that hold a bunch
+of sub-containers.
+
+----
+
+
+#### Custom Types
+
+Native Type conversions might not be sufficient enough for you. There might be cases where you want to convert
+your extracted information to a more specific type. There are custom types that can help you doing that or you
+can write your own.
+
+##### KeyValueType
+
+**TO BE CONTINUED**
+
+
+##### TimeType
+
+This object doesn't need any extra information. It will check for a valid input string and return a `datatime.time`
+instance.
+
+
+##### TwoDimensionalNumberArray
+
+An object helpful to convert a string into an even sized two dimensional array with automatic float conversion for each item.
+It always expects a `number` named match group within the pattern.
+
+Example:
+```python
+>>> array_type_1 = TwoDimensionalNumberArray("(?P<number>-?\d+)", item_array_size=1)
+>>> array_type_2 = TwoDimensionalNumberArray("(?P<number>-?\d+)", item_array_size=2)
+>>> array_type_3 = TwoDimensionalNumberArray("(?P<number>-?\d+)", item_array_size=3)
+
+>>> input = "1, 2, 4 -4, -10, 1"
+>>> print array_type_1(input)
+>>> print array_type_2(input)
+>>> print array_type_3(input)
+
+[[1.0], [2.0], [4.0], [-4.0], [-10.0], [1.0]]
+[[1.0, 2.0], [4.0, -4.0], [-10.0, 1.0]]
+[[1.0, 2.0, 4.0], [-4.0, -10.0, 1.0]]
+```
 
 
 ----
 
 ### Included Extensions
 
-- [Arnold Renderer (in progress)](http://solidangle.com/)
+#### Arnold Renderer Extension
+An extension for the lovely [Arnold Renderer](http://solidangle.com/).
+
+##### Usage
+```python
+from logmole.extensions import ArnoldLogContainer
+arnold_log = ArnoldLogContainer("C:\\tmp\\some_arnold_log.log")
+```
+
+----
+
+##### Available ArnoldLogContainer Fields
+
+- `errors`: all errors messages `str` or `list`
+- `host`: host information `LogContainer`
+  - `app`: name of the host application Arnold is running with `str`
+    - `version`: version of the host application Arnold is running with `str`
+  - `machine`:
+    - `name`: name of the machine Arnold is running on `str`
+    - `pid`: process id number `int`
+- `image`: image information `LogContainer`
+  - `file_path`: path to the generated image `str`
+  - `height`: image height `float`
+  - `width`: image width `float`
+- `libraries`: libraries information `LogContainer`
+  - `arnold_version`: Arnold core version `str`
+  - `clm_version` clm version `str`
+  - `oiio_version` OpenImageIO version `str`
+  - `osl_version` OpenShadingLanguage version `str`
+  - `plugins` loaded plugins `list`
+  - `plugins_ arnold_versions`: arnold version all plugins are using `str` or `list`
+  - `plugins_count`: number of loaded plugins `int`
+  - `rlm_version`: Reprise License Manager version `str`
+  - `vdb_version`: OpenVDB version `str`
+- `scene`: scene information `LogContainer`
+  - `geometry`: geometry objects information `LogContainer`
+    - `count`: number of geometry objects in scene `int`
+  - `lights`: scene lights information `LogContainer`
+    - `count`: number of lights in scene `int`
+    - `samples`: per-light sample & volume sample information `dict`
+  - `memory_consumption`: information regarding scene memory usage `dict`
+  - `rays`: rays information `LogContainer`
+    - `count`: number of rays per type `dict`
+    - `sample_depths`: sample and depth information per type `dict`
+  - `shader_calls` shader calls per type `dict`
+- `times`: time related information `LogContainer`
+  - `rendering`: diverse times `dict`
+  - `start`: render start time `datetime.time`
+- `warnings`: all warning messages `str` or `list`
 
 ----
 
