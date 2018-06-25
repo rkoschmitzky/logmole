@@ -46,7 +46,7 @@ class TimeType(object):
         return string
 
 
-class TwoDimensionalNumberArray(object):
+class TwoDimensionalNumberArrayType(object):
     """ given a string the class will generate a two dimensional array/list
 
     Object will perform a regex pattern match and expect a 'number' named capturing

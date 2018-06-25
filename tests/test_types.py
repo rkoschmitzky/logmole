@@ -4,6 +4,7 @@ from unittest import TestCase
 
 from src import (KeyValueType,
                  TimeType,
+                 TwoDimensionalNumberArrayType,
                  TypeAssumptions
                  )
 
@@ -76,3 +77,18 @@ class TestTimeType(TestCase):
             self.assertEqual(time(5, 6, 3, 0), self.time_type("5:6:3:00000"))
             self.assertEqual(time(5, 6, 3, 1), self.time_type("5:6:3:1"))
             self.assertEqual("24:2:1", self.time_type("24:2:1"))
+
+
+class TestTwoDimensionalNumberArrayType(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.array_type = None
+
+    def test_call(self):
+        with mock.patch.object(self, "array_type",
+                            TwoDimensionalNumberArrayType("(?P<number>-?\d+)")):
+            self.assertEqual([[1.0], [2.0], [3.0], [4.0], [5.0], [6.0]], self.array_type("1, 2, 3, 4, 5, 6"))
+        with mock.patch.object(self, "array_type",
+                            TwoDimensionalNumberArrayType("(?P<number>-?\d+(\.\d+)?)", item_array_size=3)):
+            self.assertEqual([[1.0, -2.0 , 3.0], [-6.0]], self.array_type("(1, -2, 3) >> (-6.0)"))
