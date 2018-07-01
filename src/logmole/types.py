@@ -170,9 +170,16 @@ class BaseAssumptions(object):
     def __init__(self, assumptions={}, parent_assumptions={}, inherits=True):
         super(BaseAssumptions, self).__init__()
 
-        self._assumptions = assumptions
-        self._parent_assumptions = parent_assumptions
         self._inherits = inherits
+        self._assumptions = assumptions
+        if not self.inherits:
+            self._parent_assumptions = {}
+        else:
+            self._parent_assumptions = parent_assumptions
+
+    @property
+    def inherits(self):
+        return self._inherits
 
     def call_action(self, value):
         """ Calls expected action for when there is an assumed pattern match """
@@ -193,13 +200,11 @@ class BaseAssumptions(object):
         """ If the Assumption will inherit parent assumptions add them and get the updated result """
         _assumptions = self._parent_assumptions
         assumptions = deepcopy(self._assumptions)
-        if self._inherits:
-            assumptions.update(_assumptions)
+        assumptions.update(_assumptions)
         return assumptions
 
 
-class TypeAssumptions(BaseAssumptions):
-
+class GenericAssumptions(BaseAssumptions):
     # handle all obvious assumptions we can make
     assumptions = {
         "^(\-?\d+)$": int,
@@ -207,8 +212,14 @@ class TypeAssumptions(BaseAssumptions):
         "^((N|n)one)$|^NONE$|^((N|n)ull)$|^NULL$|^((N|n)il)$|^NIL$": NoneType()
     }
 
-    def __init__(self,  assumptions={}, parent_assumptions=assumptions, inherit=True):
-        super(TypeAssumptions, self).__init__(assumptions, parent_assumptions, inherit)
+    def __init__(self):
+        super(GenericAssumptions, self).__init__(assumptions=self.assumptions, inherits=True)
+
+
+class TypeAssumptions(BaseAssumptions):
+
+    def __init__(self,  assumptions={}, parent_assumptions={}, inherits=True):
+        super(TypeAssumptions, self).__init__(assumptions, parent_assumptions, inherits)
 
 
 class TypeAssumptionError(ValueError):
