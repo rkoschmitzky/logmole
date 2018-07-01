@@ -21,6 +21,7 @@ log files.
   - [Arnold Renderer Extension](#arnold-renderer-extension)
     - [Available Fields](#available-arnoldlogcontainer-fields)
 - [Planned Extensions](#planned-extensions)
+- [Versioning](#versioning)
 
 ### What can it do for you?
 - provide a framework to create reusable and modular logparsers based on regular expressions
@@ -405,3 +406,10 @@ arnold_log = ArnoldLogContainer("C:\\tmp\\some_arnold_log.log")
 - [Redshift Renderer](https://www.redshift3d.com/)
 - [Pixars RenderMan]()
 - [VRay]()
+
+
+### Versioning
+
+`Logmole` follows [semantic versioning](https://semver.org/).
+Extensions will not be considered as an public API.
+a
