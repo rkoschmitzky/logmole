@@ -64,3 +64,6 @@ class MultiMatchContainer(LogContainer):
 class MultiMatchToDictContainer(LogContainer):
     pattern = r"(?P<family>.*)"
     assumptions = TypeAssumptions({".*": KeyValueType(r"(?P<key>.*):\s(?P<value>.*)")})
+
+
+

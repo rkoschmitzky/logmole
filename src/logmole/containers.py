@@ -3,7 +3,9 @@ import logging
 import json
 import re
 
-from .types import TypeAssumptions
+from .types import (GenericAssumptions,
+                    TypeAssumptions
+                    )
 
 LOG = logging.getLogger("logmole.container")
 
@@ -14,7 +16,7 @@ class LogContainer(object):
     representative = ""
     pattern = ""
     infer_type = True
-    assumptions = TypeAssumptions()
+    assumptions = GenericAssumptions()
     _regex = ""
     _named_group_filter = re.compile("\?P<(\w*)>")
 
@@ -140,6 +142,7 @@ class LogContainer(object):
                                                                     }
         return container_named_groups
 
+    # @todo: this functions needs refactoring
     def _generate_chain(self, containers, parent, init=False):
         """ recursively chains container patterns and members
 
@@ -156,7 +159,7 @@ class LogContainer(object):
         for container in containers:
             # create members
             if container.representative:
-                # if containers share the same parent (represantative container)
+                # if containers share the same parent (representative container)
                 # merge them
                 if not hasattr(parent, container.representative):
                     setattr(parent,
@@ -166,7 +169,8 @@ class LogContainer(object):
                                   "pattern": container.pattern,
                                   "infer_type": container.infer_type,
                                   "assumptions": TypeAssumptions(container.assumptions.get(),
-                                                                 parent.assumptions.get())
+                                                                 parent.assumptions.get(),
+                                                                 inherits=container.assumptions.inherits)
                                   }
                                  )
                             )
@@ -176,6 +180,12 @@ class LogContainer(object):
                     representative.pattern += "|" + container.pattern
             else:
                 representative = parent
+
+            # ensure we update the assumptions correctly
+            representative.assumptions = TypeAssumptions(container.assumptions.get(),
+                                                         representative.assumptions.get(),
+                                                         container.assumptions.inherits)
+
             self._create_members(container, representative, parent)
 
             assert representative.infer_type == container.infer_type, \

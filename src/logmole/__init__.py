@@ -1,5 +1,6 @@
 from .containers import LogContainer
-from .types import (TypeAssumptions,
+from .types import (GenericAssumptions,
+                    TypeAssumptions,
                     KeyValueType,
                     TimeType,
                     TwoDimensionalNumberArrayType
