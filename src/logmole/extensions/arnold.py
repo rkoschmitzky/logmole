@@ -1,5 +1,6 @@
 from ..containers import LogContainer
-from ..types import (TypeAssumptions,
+from ..types import (TimeType,
+                     TypeAssumptions,
                      KeyValueType,
                      TwoDimensionalNumberArrayType
                      )
@@ -86,12 +87,13 @@ class ArnoldGeometryContainer(LogContainer):
 
 class ArnoldSceneContainer(LogContainer):
     pattern = r"\|\s+scene\sbounds:\s(?P<bounds>\(.*\)$)"
-    assumptions = TypeAssumptions({
-        # scene bounds conversion "(x x x) -> (x x x)" to  [[x, x, x], [x, x, x]]
-        "\(.*\)\s-\>\s\(.*\)": TwoDimensionalNumberArrayType(
-            r"(?P<number>-?\d+(\.\d+)?)",
-            item_array_size=3
-            )
+    assumptions = TypeAssumptions(
+        {
+            # scene bounds conversion "(x x x) -> (x x x)" to  [[x, x, x], [x, x, x]]
+            "\(.*\)\s-\>\s\(.*\)": TwoDimensionalNumberArrayType(
+                r"(?P<number>-?\d+(\.\d+)?)",
+                item_array_size=3
+                )
         }
     )
     sub_containers = [ArnoldShadingContainer,
@@ -117,11 +119,27 @@ class ArnoldLibrariesContainer(LogContainer):
 
 class ArnoldRenderTimeContainer(LogContainer):
     pattern = r"\|\s+(?P<rendering>[a-z\s\/\.]+\s+(\d+\:\d{2}\.\d{2})$)"
+    pattern += r"|(?P<total_render_time>(\d+:?){3}).*Arnold\sshutdown"
+    assumptions = TypeAssumptions(
+        {
+            ".*\s+\d+\:\d{2}\.\d{2}": KeyValueType(
+                r"(?P<key>\b(\.?\(?\d?\/?\s?\w+){1,}\b)\s+(?P<value>.*)",
+                key_type=str,
+                value_type=str
+            ),
+        },
+        inherits=True
+    )
 
 
 class ArnoldTimeContainer(LogContainer):
     pattern = r".*log\sstarted.*(?P<start_time>(\d{2}\:?){3})"
-    pattern += r"|(?P<total_render_time>(\d+:?){3}).*Arnold\sshutdown"
+    assumptions = TypeAssumptions(
+        {
+            "(\d{2}\:){2}\d{2}": TimeType()
+        },
+        inherits=False
+    )
     representative = "times"
     sub_containers = [ArnoldRenderTimeContainer]
 
@@ -149,29 +167,25 @@ class ArnoldImageContainer(LogContainer):
 
 
 class ArnoldLogContainer(LogContainer):
-    assumptions = TypeAssumptions({
-                    # less specific assumptions with higher occurance
-                    "[a-zA-Z\s]*\s+\d+\.\d+": KeyValueType(
-                                           r"(?P<key>\b(\.?\s?\w+){1,}\b)\s+(?P<value>\d+\.\d+)",
-                                           key_type=str,
-                                           value_type=float
-                                                  ),
-                    "\w+\s+(\d+)$": KeyValueType(
-                                            r"(?P<key>\w+)\s+(?P<value>\d+)",
-                                            key_type=str,
-                                            value_type=int
-                                                ),
-                    ".*\s+\d+\:\d{2}\.\d{2}": KeyValueType(
-                                            r"(?P<key>\b(\.?\(?\d?\/?\s?\w+){1,}\b)\s+(?P<value>.*)",
-                                            key_type=str,
-                                            value_type=str
-                                                          ),
-                    # digit any_character conversion into {any_character: int}
-                    "^\d+\s[a-z_]+$": KeyValueType(
-                        r"(?P<value>\d+)\s(?P<key>.*?)",
-                        value_type=int,
-                        prefix_pattern=r"(?P<key>[a-z_]*$)"
-                        ),
+    assumptions = TypeAssumptions(
+        {
+            # less specific assumptions with higher occurance
+            "[a-zA-Z\s]*\s+\d+\.\d+": KeyValueType(
+                                   r"(?P<key>\b(\.?\s?\w+){1,}\b)\s+(?P<value>\d+\.\d+)",
+                                   key_type=str,
+                                   value_type=float
+                                          ),
+            "\w+\s+(\d+)$": KeyValueType(
+                                    r"(?P<key>\w+)\s+(?P<value>\d+)",
+                                    key_type=str,
+                                    value_type=int
+                                        ),
+            # digit any_character conversion into {any_character: int}
+            "^\d+\s[a-z_]+$": KeyValueType(
+                r"(?P<value>\d+)\s(?P<key>.*?)",
+                value_type=int,
+                prefix_pattern=r"(?P<key>[a-z_]*$)"
+                ),
 
         }
     )
