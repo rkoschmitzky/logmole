@@ -2,11 +2,12 @@ from datetime import time
 import mock
 from unittest import TestCase
 
-from src import (KeyValueType,
-                 TimeType,
-                 TwoDimensionalNumberArrayType,
-                 TypeAssumptions
-                 )
+from ..src.logmole import (
+    KeyValueType,
+    TimeType,
+    TwoDimensionalNumberArrayType,
+    TypeAssumptions
+)
 
 
 class TestTypeAssumptions(TestCase):

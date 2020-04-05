@@ -5,7 +5,7 @@ import tempfile
 import uuid
 from unittest import TestCase
 
-from src import LogContainer
+from ..src.logmole import LogContainer
 
 from tests.fixtures import containers
 
