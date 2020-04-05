@@ -1,20 +1,22 @@
 from datetime import time
-import mock
-from unittest import TestCase
+from unittest import (
+    mock,
+    TestCase
+)
 
 from ..src.logmole import (
     KeyValueType,
     TimeType,
     TwoDimensionalNumberArrayType,
-    TypeAssumptions
+    GenericAssumptions
 )
 
 
-class TestTypeAssumptions(TestCase):
+class TestGenericAssumptions(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls._assumptions = TypeAssumptions()
+        cls._assumptions = GenericAssumptions()
 
     def test_call_action(self):
         self.assertEqual(-2, self._assumptions.call_action("-2"))

@@ -39,7 +39,7 @@ class LogContainer(object):
         tree = OrderedDict()
 
         # sort all added members
-        members = [_["member_name"] for _ in self._groups_map.viewvalues()]
+        members = [_["member_name"] for _ in self._groups_map.values()]
         members.sort()
 
         # create a nested dictionary representing all added members
@@ -207,7 +207,7 @@ class LogContainer(object):
         with open(filepath) as f:
             for match in regex_finditer_filter(f, self.regex):
                 for _ in match:
-                    for key, value in _.groupdict().iteritems():
+                    for key, value in _.groupdict().items():
                         # check if the match group key has a real value
                         if value:
                             # check if we added a value before
@@ -227,7 +227,7 @@ class LogContainer(object):
                                         "Can only add value to existing if it is of same type. " + \
                                         "Got {0} for value '{1}, expected dict'".format(type(converted_match),
                                                                                         value)
-                                    for _key, _value in converted_match.iteritems():
+                                    for _key, _value in converted_match.items():
                                         existing_match[_key] = _value
                                 else:
                                     # although this is quite ugly we have to do this to ensure
@@ -261,7 +261,7 @@ class LogContainer(object):
         Returns:
 
         """
-        for key, value in self._groups_map.iteritems():
+        for key, value in self._groups_map.items():
             if value["member_name"] == member_name:
                 return getattr(value["obj"], value["attr"])
         return default

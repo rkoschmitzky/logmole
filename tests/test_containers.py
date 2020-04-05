@@ -7,7 +7,7 @@ from unittest import TestCase
 
 from ..src.logmole import LogContainer
 
-from tests.fixtures import containers
+from .fixtures import containers
 
 
 def init_mock(self, *args, **kwargs):

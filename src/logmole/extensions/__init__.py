@@ -1,1 +1,1 @@
-from arnold import ArnoldLogContainer
+from .arnold import ArnoldLogContainer

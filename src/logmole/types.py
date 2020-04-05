@@ -186,7 +186,7 @@ class BaseAssumptions(object):
         if not isinstance(value, str):
             raise TypeAssumptionError("Value has to be of type 'str'.")
         results = []
-        for pattern, action in self.get().iteritems():
+        for pattern, action in self.get().items():
             if re.match(pattern, value):
                 if results:
                     raise TypeAssumptionError("Multiple assumptions matching on value {}".format(value))
