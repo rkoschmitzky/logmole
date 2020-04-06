@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/rkoschmitzky/logmole.svg?branch=master)](https://travis-ci.com/rkoschmitzky/logmole)  [![Coverage Status](https://coveralls.io/repos/github/rkoschmitzky/logmole/badge.svg?branch=master)](https://coveralls.io/github/rkoschmitzky/logmole?branch=master) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Downloads](https://pepy.tech/badge/logmole)](https://pepy.tech/project/logmole)
+[![Build Status](https://travis-ci.com/rkoschmitzky/logmole.svg?branch=master)](https://travis-ci.com/rkoschmitzky/logmole) [![Coverage Status](https://coveralls.io/repos/github/rkoschmitzky/logmole/badge.svg?branch=master&service=github)](https://coveralls.io/github/rkoschmitzky/logmole?branch=master) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Downloads](https://pepy.tech/badge/logmole)](https://pepy.tech/project/logmole)
 # Logmole
 
 ## An Extendable and Versatile Logparsing System
