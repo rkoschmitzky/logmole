@@ -1,11 +1,15 @@
-from collections import OrderedDict
+import os
 import logging
 import json
 import re
 
-from .types import (GenericAssumptions,
-                    TypeAssumptions
-                    )
+
+from collections import OrderedDict
+
+from .types import (
+    GenericAssumptions,
+    TypeAssumptions
+)
 
 LOG = logging.getLogger("logmole.container")
 
@@ -23,7 +27,13 @@ class LogContainer(object):
     def __init__(self, file):
         self._groups_map = {}
         self._generate_chain(self.sub_containers, self, init=True)
-        self._parse_file(file)
+
+        if os.path.exists(file):
+            with open(file) as f:
+                self._parse_data(f)
+        else:
+            self._parse_data(file)
+
         self._tree = self._generate_member_tree()
 
     def __repr__(self):
@@ -104,9 +114,11 @@ class LogContainer(object):
 
         named_groups = self._named_group_filter.findall(container_pattern)
         if not named_groups:
-            raise ValueError("Container '{0}' pattern '{1}' ".format(cls.__name__, cls.pattern) +
-                             "doesn't include a named capturing group. " +
-                             "No matches will be added.")
+            raise ValueError(
+                "Container '{0}' pattern '{1}' ".format(cls.__name__, cls.pattern) +
+                "doesn't include a named capturing group. " +
+                "No matches will be added."
+            )
 
         for named_group in named_groups:
             # namespace the group name
@@ -135,11 +147,13 @@ class LogContainer(object):
             setattr(representative, named_group, None)
             _member_draft_name = parent.representative + "." + cls.representative + "." + named_group
             member_name = ".".join([_ for _ in _member_draft_name.split(".") if _])
-            self._groups_map[self._group_name(cls, named_group)] = {"obj": representative,
-                                                                    "attr": named_group,
-                                                                    "member_name": member_name,
-                                                                    "value": None
-                                                                    }
+            self._groups_map[self._group_name(cls, named_group)] = {
+                "obj": representative,
+                "attr": named_group,
+                "member_name": member_name,
+                "value": None
+            }
+
         return container_named_groups
 
     # @todo: this functions needs refactoring
@@ -159,21 +173,24 @@ class LogContainer(object):
         for container in containers:
             # create members
             if container.representative:
-                # if containers share the same parent (representative container)
-                # merge them
+                # if containers share the same parent (representative container) merge them
                 if not hasattr(parent, container.representative):
-                    setattr(parent,
-                            container.representative,
-                            type("LogContainer", (LogContainer, ),
-                                 {"representative": container.representative,
-                                  "pattern": container.pattern,
-                                  "infer_type": container.infer_type,
-                                  "assumptions": TypeAssumptions(container.assumptions.get(),
-                                                                 parent.assumptions.get(),
-                                                                 inherits=container.assumptions.inherits)
-                                  }
+                    setattr(
+                        parent,
+                        container.representative,
+                        type("LogContainer", (LogContainer, ),
+                             {
+                                 "representative": container.representative,
+                                 "pattern": container.pattern,
+                                 "infer_type": container.infer_type,
+                                 "assumptions": TypeAssumptions(
+                                     container.assumptions.get(),
+                                     parent.assumptions.get(),
+                                     inherits=container.assumptions.inherits
                                  )
-                            )
+                              }
+                        )
+                    )
                 representative = getattr(parent, container.representative)
                 # although the pattern will not be used it is useful for debugging
                 if representative.pattern != container.pattern:
@@ -182,9 +199,11 @@ class LogContainer(object):
                 representative = parent
 
             # ensure we update the assumptions correctly
-            representative.assumptions = TypeAssumptions(container.assumptions.get(),
-                                                         representative.assumptions.get(),
-                                                         container.assumptions.inherits)
+            representative.assumptions = TypeAssumptions(
+                container.assumptions.get(),
+                representative.assumptions.get(),
+                container.assumptions.inherits
+            )
 
             self._create_members(container, representative, parent)
 
@@ -195,52 +214,53 @@ class LogContainer(object):
             # continue generating chain
             self._generate_chain(container.sub_containers, representative)
 
-    def _parse_file(self, filepath):
+    def _parse_data(self, data):
         """ parses the file and add the results to their corresponding member
 
         Args:
-            filepath (str): path to file
+            data (str): string data to parse
 
         Returns:
 
         """
-        with open(filepath) as f:
-            for match in regex_finditer_filter(f, self.regex):
-                for _ in match:
-                    for key, value in _.groupdict().items():
-                        # check if the match group key has a real value
-                        if value:
-                            # check if we added a value before
-                            container = self._groups_map[key]["obj"]
-                            attr_name = self._groups_map[key]["attr"]
-                            existing_match = getattr(container, attr_name)
-                            converted_match = self._infer_type(container, attr_name, value)
-                            # handle multimatches by appending them or add them into the dict
-                            if existing_match and container:
-                                if isinstance(existing_match, list):
-                                    existing_match.append(converted_match)
-                                    existing_match = list(set(existing_match))
-                                    existing_match.sort()
-                                # todo: support other key value storages
-                                elif isinstance(existing_match, dict):
-                                    assert isinstance(converted_match, dict),\
-                                        "Can only add value to existing if it is of same type. " + \
-                                        "Got {0} for value '{1}, expected dict'".format(type(converted_match),
-                                                                                        value)
-                                    for _key, _value in converted_match.items():
-                                        existing_match[_key] = _value
-                                else:
-                                    # although this is quite ugly we have to do this to ensure
-                                    # that the second match will end up as part of the list and
-                                    # not only creating
-                                    existing_match = [existing_match]
-                                    existing_match.append(converted_match)
-                                    existing_match = list(set(existing_match))
+        for match in regex_finditer_filter(data, self.regex):
+            for _ in match:
+                for key, value in _.groupdict().items():
+                    # check if the match group key has a real value
+                    if value:
+                        # check if we added a value before
+                        container = self._groups_map[key]["obj"]
+                        attr_name = self._groups_map[key]["attr"]
+                        existing_match = getattr(container, attr_name)
+                        converted_match = self._infer_type(container, attr_name, value)
+                        # handle multimatches by appending them or add them into the dict
+                        if existing_match and container:
+                            if isinstance(existing_match, list):
+                                existing_match.append(converted_match)
+                                existing_match = list(set(existing_match))
+                                existing_match.sort()
+                            # todo: support other key value storages
+                            elif isinstance(existing_match, dict):
+                                assert isinstance(converted_match, dict),\
+                                    "Can only add value to existing if it is of same type. " + \
+                                    "Got {0} for value '{1}, expected dict'".format(
+                                        type(converted_match),
+                                        value
+                                    )
+                                for _key, _value in converted_match.items():
+                                    existing_match[_key] = _value
                             else:
-                                # otherwise simple add the string value
-                                existing_match = converted_match
+                                # although this is quite ugly we have to do this to ensure
+                                # that the second match will end up as part of the list and
+                                # not only creating
+                                existing_match = [existing_match]
+                                existing_match.append(converted_match)
+                                existing_match = list(set(existing_match))
+                        else:
+                            # otherwise simple add the string value
+                            existing_match = converted_match
 
-                            setattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"], existing_match)
+                        setattr(self._groups_map[key]["obj"], self._groups_map[key]["attr"], existing_match)
 
     @staticmethod
     def _infer_type(cls, attr_name, value):

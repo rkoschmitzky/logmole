@@ -19,12 +19,28 @@ class TestContainer(TestCase):
     @classmethod
     def setUpClass(cls):
         cls._log = os.path.join(os.path.dirname(containers.__file__), "log")
+        with open(cls._log, "r") as f:
+            cls._logstream = f.read()
         cls._patched_container = type("PatchContainer", (containers.ParentsContainer,), {"__init__": init_mock})
-        cls._expected_dict = OrderedDict([('children', {'child1': {'name': 'Dave'},
-                                                        'child2': {'name': 'Lea'}}),
-                                          ('parents', {'father': 'Peter', 'mother': 'Jane'})
-                                          ]
-                                         )
+        cls._expected_dict = OrderedDict(
+            [
+                (
+                    'children', {
+                        'child1': {
+                            'name': 'Dave'
+                        },
+                        'child2': {
+                            'name': 'Lea'
+                        }
+                    }
+                ),
+                (
+                    'parents', {
+                        'father': 'Peter', 'mother': 'Jane'
+                    }
+                )
+            ]
+        )
 
     def test_group_detection(self):
         with self.assertRaises(ValueError) as e:
@@ -40,14 +56,18 @@ class TestContainer(TestCase):
         x = self._patched_container(self._log)
         x._generate_chain(x.sub_containers, x, init=True)
 
-        expected_containers = ["MotherContainer_mother",
-                               "FatherContainer_father",
-                               "Child1Container_name",
-                               "Child2Container_name"]
-        patterns = [r"mother:\s(?P<{0}>.*)",
-                    r"father:\s(?P<{1}>.*)",
-                    r"child1:\s(?P<{2}>.*)",
-                    r"child2:\s(?P<{3}>.*)"]
+        expected_containers = [
+            "MotherContainer_mother",
+            "FatherContainer_father",
+            "Child1Container_name",
+            "Child2Container_name"
+        ]
+        patterns = [
+            r"mother:\s(?P<{0}>.*)",
+            r"father:\s(?P<{1}>.*)",
+            r"child1:\s(?P<{2}>.*)",
+            r"child2:\s(?P<{3}>.*)"
+        ]
 
         # check pattern
         self.assertEqual(r"|".join(patterns).format(*expected_containers), x.regex)
@@ -67,21 +87,23 @@ class TestContainer(TestCase):
         self.assertEqual(x._groups_map[expected_containers[3]]["attr"], "name")
 
     def test_members(self):
-        x = containers.ParentsContainer(self._log)
 
-        self.assertTrue(hasattr(x, "parents"))
-        self.assertTrue(hasattr(x.parents, "father"))
-        self.assertTrue(hasattr(x.parents, "mother"))
-        self.assertTrue(hasattr(x, "children"))
-        self.assertTrue(hasattr(x.children, "child1"))
-        self.assertTrue(hasattr(x.children.child1, "name"))
-        self.assertTrue(hasattr(x.children, "child2"))
-        self.assertTrue(hasattr(x.children.child2, "name"))
+        for file_or_stream in [self._log, self._logstream]:
+            x = containers.ParentsContainer(file_or_stream)
 
-        self.assertTrue(issubclass(x.parents, LogContainer))
-        self.assertTrue(issubclass(x.children, LogContainer))
-        self.assertTrue(issubclass(x.children.child1, LogContainer))
-        self.assertTrue(issubclass(x.children.child2, LogContainer))
+            self.assertTrue(hasattr(x, "parents"))
+            self.assertTrue(hasattr(x.parents, "father"))
+            self.assertTrue(hasattr(x.parents, "mother"))
+            self.assertTrue(hasattr(x, "children"))
+            self.assertTrue(hasattr(x.children, "child1"))
+            self.assertTrue(hasattr(x.children.child1, "name"))
+            self.assertTrue(hasattr(x.children, "child2"))
+            self.assertTrue(hasattr(x.children.child2, "name"))
+
+            self.assertTrue(issubclass(x.parents, LogContainer))
+            self.assertTrue(issubclass(x.children, LogContainer))
+            self.assertTrue(issubclass(x.children.child1, LogContainer))
+            self.assertTrue(issubclass(x.children.child2, LogContainer))
 
     def test_tree(self):
         self.assertDictEqual(containers.ParentsContainer(self._log)._tree, self._expected_dict)
