@@ -85,7 +85,7 @@ class MovieLog(LogContainer):
 ```
 ```python
 >>> log = MovieLog("/tmp/some.log")
->>> print log
+>>> print(log)
 
 {
     "end_time": "19:22:46",
@@ -95,8 +95,8 @@ class MovieLog(LogContainer):
 
 The LogContainer gets represented as prettified dictionary. But contrary to that you can use it as object that holds attributes for each capturing group.
 ```python
->>> print log.start_time
->>> print log.end_time
+>>> print(log.start_time)
+>>> print(log.end_time)
 
 19:22:40
 19:22:46
@@ -120,10 +120,10 @@ class MovieLog(LogContainer):
 
 ```python
 >>> log = MovieLog("/tmp/some.log")
->>> print log
->>> print "-"*10
->>> print log.times.start
->>> print log.times.end
+>>> print(log)
+>>> print("-"*10)
+>>> print(log.times.start)
+>>> print(log.times.end)
 
 {
     "times": {
@@ -157,9 +157,11 @@ class TimesContainer(LogContainer):
 
 
 class MovieLog(LogContainer):
-    sub_containers = [TimesContainer,
-                      GhostsContainer,
-                      EntitiesContainer]
+    sub_containers = [
+        TimesContainer,
+        GhostsContainer,
+        EntitiesContainer
+    ]
 ```
 
 ```
@@ -287,7 +289,7 @@ class TimesContainer(LogContainer):
 
 ```python
 >>> log = MovieLog("/tmp/some.log")
->>> print type(log.times.start)
+>>> print(type(log.times.start))
 <type 'datetime.time'>
 ```
 
@@ -334,9 +336,9 @@ Example:
 >>> array_type_3 = TwoDimensionalNumberArray("(?P<number>-?\d+)", item_array_size=3)
 
 >>> input = "1, 2, 4 -4, -10, 1"
->>> print array_type_1(input)
->>> print array_type_2(input)
->>> print array_type_3(input)
+>>> print(array_type_1(input))
+>>> print(array_type_2(input))
+>>> print(array_type_3(input))
 
 [[1.0], [2.0], [4.0], [-4.0], [-10.0], [1.0]]
 [[1.0, 2.0], [4.0, -4.0], [-10.0, 1.0]]
@@ -353,4 +355,4 @@ Example:
 
 ### Extensions
 
-[ArnoldMole](https://github.com/rkoschmitzky/arnoldmolehttps://github.com/rkoschmitzky/arnoldmolehttps://github.com/rkoschmitzky/arnoldmolehttps://github.com/rkoschmitzky/arnoldmolehttps://github.com/rkoschmitzky/arnoldmole) - An Extension for the lovely [Arnold Renderer](https://github.com/rkoschmitzky/arnoldmole)
+[ArnoldMole](https://github.com/rkoschmitzky/arnoldmole) - An Extension for the lovely [Arnold Renderer](https://www.arnoldrenderer.com)
