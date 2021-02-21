@@ -254,7 +254,7 @@ types.
 This includes support for:
 
 - `int`: `^(\-?\d+)$`
-- `float`: `^(\-?\d+)$`
+- `float`: `^(\-?\d+\.\d+)$`
 - `None`: `((N|n)one)$|^NONE$|^((N|n)ull)$|^NULL$|^((N|n)il)$|^NIL$`
 
 
