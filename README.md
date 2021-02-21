@@ -18,11 +18,7 @@ log files.
     - [Native Type Assumptions](#native-type-assumptions)
     - [Custom Type Assumptions](#custom-type-assumptions)
     - [Custom Types](#custom-types)
-- [Included Extensions](#included-extensions)
-  - [Arnold Renderer Extension](#arnold-renderer-extension)
-    - [Available Fields](#available-arnoldlogcontainer-fields)
-- [Planned Extensions](#planned-extensions)
-- [Versioning](#versioning)
+- [Extensions](#extensions)
 
 ### What can it do for you?
 - provide a framework to create reusable and modular logparsers based on regular expressions
@@ -30,9 +26,6 @@ log files.
 - dynamic object and fields creation based on named capturing groups and representatives
 - help with automatic and robust type conversions
 - offer some pre-build extensions
-
-**Contrary to, what do you have to do?**
-- write extensions and contribute
 
 -----
 
@@ -91,7 +84,7 @@ class MovieLog(LogContainer):
     pattern = "(?P<start_time>.\d+\:\d+:\d+).*started|(?P<end_time>.\d+\:\d+:\d+).*ends"
 ```
 ```python
->>> log = MovieLog("C:\\tmp\\some.log")
+>>> log = MovieLog("/tmp/some.log")
 >>> print log
 
 {
@@ -126,7 +119,7 @@ class MovieLog(LogContainer):
 ```
 
 ```python
->>> log = MovieLog("C:\\tmp\\some.log")
+>>> log = MovieLog("/tmp/some.log")
 >>> print log
 >>> print "-"*10
 >>> print log.times.start
@@ -170,7 +163,7 @@ class MovieLog(LogContainer):
 ```
 
 ```
->>> log = MovieLog("C:\\tmp\\some.log")
+>>> log = MovieLog("/tmp/some.log")
 >>> print log
 
 {
@@ -203,8 +196,10 @@ class EntitiesContainer(LogContainer):
 
 
 class SceneContainer(LogContainer):
-    sub_containers = [GhostsContainer,
-                      EntitiesContainer]
+    sub_containers = [
+        GhostsContainer,
+        EntitiesContainer
+    ]
     representative = "scene"
 
 
@@ -214,8 +209,10 @@ class TimesContainer(LogContainer):
 
 
 class MovieLog(LogContainer):
-    sub_containers = [TimesContainer,
-                      SceneContainer]
+    sub_containers = [
+        TimesContainer,
+        SceneContainer
+]
 ```
 
 <br>
@@ -254,11 +251,10 @@ types.
 
 This includes support for:
 
-| Type       | Used Regex
-|:-----------|:------------------------------------------------------|
-| `int`      | `^(\-?\d+)$`
-| `float`    | `(\-?\d+\.\d+)$`
-| `None`     | `^((N|n)one)$|^NONE$|^((N|n)ull)$|^NULL$|^((N|n)il)$|^NIL$`
+- `int`: `^(\-?\d+)$`
+- `float`: `^(\-?\d+)$`
+- `None`: `((N|n)one)$|^NONE$|^((N|n)ull)$|^NULL$|^((N|n)il)$|^NIL$`
+
 
 
 ----
@@ -276,20 +272,21 @@ Find out more about [native type assumptions](#native-type-assumptions):
 You can also extend existing assumptions or create an individual set of assumptions per container.
 Lets demonstrate this on our `TimesContainer` using a custom available [`TimeType`](#timetype) object.
 ```python
-from logmole import (TypeAssumptions,
-                     TimeType
-                    )
+from logmole import (
+    TypeAssumptions,
+    TimeType
+)
 ```
 
 ```python
 class TimesContainer(LogContainer):
-    assumptions = TypeAssumptions({".*": TimeType())
+    assumptions = TypeAssumptions({".*": TimeType()})
     pattern = r"(?P<start>.\d+\:\d+:\d+).*started|(?P<end>.\d+\:\d+:\d+).*ends"
     representative = "times"
 ```
 
 ```python
->>> log = MovieLog("C:\\tmp\\some.log")
+>>> log = MovieLog("/tmp/some.log")
 >>> print type(log.times.start)
 <type 'datetime.time'>
 ```
@@ -346,71 +343,14 @@ Example:
 [[1.0, 2.0, 4.0], [-4.0, -10.0, 1.0]]
 ```
 
-
 ----
-
-### Included Extensions
-
-#### Arnold Renderer Extension
-An extension for the lovely [Arnold Renderer](http://solidangle.com/).
-
-##### Usage
-```python
-from logmole.extensions import ArnoldLogContainer
-arnold_log = ArnoldLogContainer("C:\\tmp\\some_arnold_log.log")
-```
-
-----
-
-##### Available ArnoldLogContainer Fields
-
-- `errors`: all errors messages `str` or `list`
-- `host`: host information `LogContainer`
-  - `app`: name of the host application Arnold is running with `str`
-    - `version`: version of the host application Arnold is running with `str`
-  - `machine`:
-    - `name`: name of the machine Arnold is running on `str`
-    - `pid`: process id number `int`
-- `image`: image information `LogContainer`
-  - `file_path`: path to the generated image `str`
-  - `height`: image height `float`
-  - `width`: image width `float`
-- `libraries`: libraries information `LogContainer`
-  - `arnold_version`: Arnold core version `str`
-  - `clm_version` clm version `str`
-  - `oiio_version` OpenImageIO version `str`
-  - `osl_version` OpenShadingLanguage version `str`
-  - `plugins` loaded plugins `list`
-  - `plugins_ arnold_versions`: arnold version all plugins are using `str` or `list`
-  - `plugins_count`: number of loaded plugins `int`
-  - `rlm_version`: Reprise License Manager version `str`
-  - `vdb_version`: OpenVDB version `str`
-- `scene`: scene information `LogContainer`
-  - `geometry`: geometry objects information `LogContainer`
-    - `count`: number of geometry objects in scene `int`
-  - `lights`: scene lights information `LogContainer`
-    - `count`: number of lights in scene `int`
-    - `samples`: per-light sample & volume sample information `dict`
-  - `memory_consumption`: information regarding scene memory usage `dict`
-  - `rays`: rays information `LogContainer`
-    - `count`: number of rays per type `dict`
-    - `sample_depths`: sample and depth information per type `dict`
-  - `shader_calls` shader calls per type `dict`
-- `times`: time related information `LogContainer`
-  - `rendering`: diverse times `dict`
-  - `start`: render start time `datetime.time`
-- `warnings`: all warning messages `str` or `list`
-
-----
-
-### Planned Extensions
-- [Redshift Renderer](https://www.redshift3d.com/)
-- [Pixars RenderMan]()
-- [VRay]()
-
 
 ### Versioning
 
 `Logmole` follows [semantic versioning](https://semver.org/).
-Extensions will not be considered as an public API.
-a
+
+----
+
+### Extensions
+
+[ArnoldMole](https://github.com/rkoschmitzky/arnoldmolehttps://github.com/rkoschmitzky/arnoldmolehttps://github.com/rkoschmitzky/arnoldmolehttps://github.com/rkoschmitzky/arnoldmolehttps://github.com/rkoschmitzky/arnoldmole) - An Extension for the lovely [Arnold Renderer](https://github.com/rkoschmitzky/arnoldmole)
