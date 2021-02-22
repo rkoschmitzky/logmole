@@ -12,6 +12,7 @@ classifiers = [
     "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Utilities",
     "Topic :: System :: Logging",
@@ -22,7 +23,7 @@ classifiers = [
 
 setup(
     name="logmole",
-    version="0.9.0",
+    version="0.9.1",
     author="Rico Koschmitzky",
     author_email="contact@ricokoschmitzky.com",
     classifiers=classifiers,

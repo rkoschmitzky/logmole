@@ -106,18 +106,24 @@ class TestContainer(TestCase):
             self.assertTrue(issubclass(x.children.child2, LogContainer))
 
     def test_tree(self):
-        self.assertDictEqual(containers.ParentsContainer(self._log)._tree, self._expected_dict)
+        for file_or_stream in [self._log, self._logstream]:
+            self.assertDictEqual(
+                containers.ParentsContainer(file_or_stream)._tree,
+                self._expected_dict
+            )
 
     def test_get_value(self):
 
-        x = containers.ParentsContainer(self._log)
+        for file_or_stream in [self._log, self._logstream]:
+            x = containers.ParentsContainer(file_or_stream)
 
-        self.assertIsNone(x.get_value("mother"))
-        self.assertEqual(x.get_value("parents", default=6), 6)
-        self.assertEqual(x.get_value("parents.father"), "Peter")
-        self.assertEqual(x.get_value("parents.mother"), "Jane")
-        self.assertEqual(x.get_value("children.child1.name"), "Dave")
-        self.assertEqual(x.get_value("children.child2.name"), "Lea")
+            self.assertIsNone(x.get_value("mother"))
+            self.assertEqual(x.get_value("parents", default=6), 6)
+            self.assertEqual(x.get_value("parents.father"), "Peter")
+            self.assertEqual(x.get_value("parents.mother"), "Jane")
+            self.assertEqual(x.get_value("children.child1.name"), "Dave")
+            self.assertEqual(x.get_value("children.child2.name"), "Lea")
+
 
     def test_dump(self):
 

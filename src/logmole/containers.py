@@ -32,7 +32,7 @@ class LogContainer(object):
             with open(file) as f:
                 self._parse_data(f)
         else:
-            self._parse_data(file)
+            self._parse_data(file.splitlines())
 
         self._tree = self._generate_member_tree()
 
